@@ -102,23 +102,18 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 .footer-logo-wrap {
   display: inline-flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.06);
   padding: 10px 16px;
   border-radius: var(--radius-sm);
   margin-bottom: 18px;
-  backdrop-filter: blur(4px);
-}
-/* Desktop: opaker, sauberer */
-@media (min-width: 768px) {
-  .footer-logo-wrap {
-    background: var(--white);
-    backdrop-filter: none;
-  }
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 .footer-logo {
   height: 40px;
   width: auto;
   display: block;
+  filter: brightness(0) invert(1);
+  opacity: 1;
 }
 
 .nav-cta {
