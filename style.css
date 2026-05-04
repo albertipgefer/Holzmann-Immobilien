@@ -985,6 +985,47 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 .faq-item a { color: var(--ink); border-bottom: 1px solid var(--line-strong); }
 .faq-item a:hover { color: var(--gold); border-color: var(--gold); }
 
+/* ========== REGIONEN ========== */
+.regions-grid {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (min-width: 600px) { .regions-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .regions-grid { grid-template-columns: repeat(4, 1fr); } }
+.regions-grid li {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 18px 18px;
+  display: flex; flex-direction: column; gap: 4px;
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.regions-grid li:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 12px 28px rgba(7,7,26,0.06); }
+.regions-grid li strong {
+  font-family: var(--h-font);
+  font-size: 17px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.regions-grid li span {
+  font-family: var(--b-font);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.regions-note {
+  margin: 28px 0 0;
+  font-family: var(--h-font);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  text-align: center;
+}
+
 /* ========== Section CTA Row (Mid-Page CTAs zurück zum Quiz) ========== */
 .section-cta-row {
   margin-top: 48px;
