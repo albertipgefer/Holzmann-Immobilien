@@ -381,6 +381,31 @@
     return opt ? opt.label : value;
   }
 
+  // Bereitet User-Daten für Google Ads Enhanced Conversions auf.
+  // Google akzeptiert Klartext und hasht intern selbst (SHA-256).
+  function buildEnhancedConversionData(a) {
+    function clean(s) { return (s || '').toString().trim().toLowerCase(); }
+    function normalizePhone(p) {
+      if (!p) return '';
+      var s = ('' + p).replace(/[^\d+]/g, '');
+      if (s.indexOf('+') === 0) return s;
+      if (s.indexOf('00') === 0) return '+' + s.slice(2);
+      if (s.indexOf('0') === 0) return '+49' + s.slice(1);
+      return '+49' + s;
+    }
+    return {
+      email:       clean(a.email),
+      phone_number: normalizePhone(a.phone),
+      address: {
+        first_name:  clean(a.firstname),
+        last_name:   clean(a.lastname),
+        street:      clean(a.address),
+        postal_code: clean(a.plz),
+        country:     'DE'
+      }
+    };
+  }
+
   function submitLead() {
     const a = state.answers;
     const leadType = (state.leadType || '').toUpperCase();
@@ -410,10 +435,15 @@
       'Zeitstempel': new Date().toISOString()
     };
 
+    // Enhanced Conversions: bereinigte User-Daten für Google Ads bereitstellen
+    const userData = buildEnhancedConversionData(a);
+    try { localStorage.setItem('holzmann-ec-userdata', JSON.stringify({ data: userData, ts: Date.now() })); } catch(e) {}
+
     push('quiz_completed_' + state.leadType, {
       lead_type: state.leadType,
       value: state.leadType === 'hot' ? 200 : state.leadType === 'warm' ? 50 : 0,
-      currency: 'EUR'
+      currency: 'EUR',
+      enhanced_conversion_data: userData
     });
 
     return fetch(CONFIG.formEndpoint, {

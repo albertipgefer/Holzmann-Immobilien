@@ -64,14 +64,30 @@
     gtag('config', 'AW-17651262615');
   </script>
 
-  <!-- Conversion-Event (Buchung bestätigt) — wird von GTM aufgegriffen -->
+  <!-- Conversion-Event (Buchung bestätigt) + Enhanced Conversions User-Data -->
   <script>
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'booking_confirmed',
-      page_type: 'thankyou',
-      lead_source: 'landingpage_google_ads'
-    });
+    (function(){
+      window.dataLayer = window.dataLayer || [];
+      var userData = null;
+      try {
+        var raw = localStorage.getItem('holzmann-ec-userdata');
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          // User-Daten max. 2 Stunden nach Quiz-Submit gültig
+          if (parsed && parsed.data && parsed.ts && (Date.now() - parsed.ts) < 7200000) {
+            userData = parsed.data;
+          }
+        }
+      } catch(e) {}
+
+      var event = {
+        event: 'booking_confirmed',
+        page_type: 'thankyou',
+        lead_source: 'landingpage_google_ads'
+      };
+      if (userData) event.enhanced_conversion_data = userData;
+      window.dataLayer.push(event);
+    })();
   </script>
 
   <style>
