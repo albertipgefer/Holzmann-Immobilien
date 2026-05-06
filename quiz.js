@@ -511,27 +511,16 @@
         }
         p(cal, ar);
       };
-    })(window, 'https://app.cal.eu/embed/embed.js', 'init');
+    })(window, 'https://app.cal.com/embed/embed.js', 'init');
 
-    Cal('init', 'holzmann15', { origin: 'https://app.cal.eu' });
-    Cal.ns.holzmann15('inline', {
+    Cal('init', '15min', { origin: 'https://app.cal.com' });
+    Cal.ns['15min']('inline', {
       elementOrSelector: '#cal-embed-holzmann',
-      calLink: CONFIG.calLink,
-      config: { layout: 'month_view', theme: 'light', overlayCalendar: 'true' }
+      config: { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
+      calLink: CONFIG.calLink
     });
-    Cal.ns.holzmann15('ui', {
-      hideEventTypeDetails: false,
-      layout: 'month_view',
-      theme: 'light',
-      cssVarsPerTheme: {
-        light: {
-          'cal-brand': '#B8895F',
-          'cal-text': '#07071A',
-          'cal-bg': '#FFFFFF'
-        }
-      }
-    });
-    if (prefill.email) Cal.ns.holzmann15('prefill', prefill);
+    Cal.ns['15min']('ui', { hideEventTypeDetails: false, layout: 'month_view' });
+    if (prefill.email) Cal.ns['15min']('prefill', prefill);
   }
 
   // ---- Tracking ------------------------------------------
