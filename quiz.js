@@ -513,14 +513,29 @@
       };
     })(window, 'https://app.cal.com/embed/embed.js', 'init');
 
+    // Prefill direkt im calLink als URL-Parameter — überschreibt zuverlässig
+    // gespeicherte Cal.com-Cookies/localStorage des Browsers.
+    const params = new URLSearchParams();
+    if (prefill.name) params.set('name', prefill.name);
+    if (prefill.email) params.set('email', prefill.email);
+    if (prefill.smsReminderNumber) params.set('smsReminderNumber', prefill.smsReminderNumber);
+    if (prefill.notes) params.set('notes', prefill.notes);
+    const calLinkWithPrefill = CONFIG.calLink + (params.toString() ? '?' + params.toString() : '');
+
     Cal('init', '15min', { origin: 'https://app.cal.com' });
     Cal.ns['15min']('inline', {
       elementOrSelector: '#cal-embed-holzmann',
-      config: { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
-      calLink: CONFIG.calLink
+      config: Object.assign(
+        { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
+        prefill.name ? { name: prefill.name } : {},
+        prefill.email ? { email: prefill.email } : {},
+        prefill.smsReminderNumber ? { smsReminderNumber: prefill.smsReminderNumber } : {},
+        prefill.notes ? { notes: prefill.notes } : {}
+      ),
+      calLink: calLinkWithPrefill
     });
     Cal.ns['15min']('ui', { hideEventTypeDetails: false, layout: 'month_view' });
-    if (prefill.email) Cal.ns['15min']('prefill', prefill);
+    Cal.ns['15min']('prefill', prefill);
   }
 
   // ---- Tracking ------------------------------------------
