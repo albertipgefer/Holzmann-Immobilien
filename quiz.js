@@ -517,7 +517,7 @@
     Cal.ns.holzmann15('inline', {
       elementOrSelector: '#cal-embed-holzmann',
       calLink: CONFIG.calLink,
-      config: { layout: 'month_view', theme: 'light' }
+      config: { layout: 'month_view', theme: 'light', overlayCalendar: 'true' }
     });
     Cal.ns.holzmann15('ui', {
       hideEventTypeDetails: false,
