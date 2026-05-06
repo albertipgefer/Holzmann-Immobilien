@@ -19,6 +19,34 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
 
+  <!-- Consent Mode v2 — Defaults (DSGVO/EU). MUSS vor GTM und gtag laden. -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('consent', 'default', {
+      'ad_storage':         'denied',
+      'ad_user_data':       'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage':  'denied',
+      'functionality_storage': 'granted',
+      'security_storage':      'granted',
+      'wait_for_update': 500,
+      'region': ['DE','AT','CH']
+    });
+    // Zuvor erteilte Zustimmung (von der LP) wiederherstellen
+    try {
+      if (localStorage.getItem('holzmann-cookie-consent') === 'all') {
+        gtag('consent', 'update', {
+          'ad_storage':         'granted',
+          'ad_user_data':       'granted',
+          'ad_personalization': 'granted',
+          'analytics_storage':  'granted'
+        });
+      }
+    } catch(e) {}
+  </script>
+  <!-- End Consent Mode v2 -->
+
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],

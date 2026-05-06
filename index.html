@@ -22,6 +22,34 @@
 
   <link rel="stylesheet" href="./style.css?v=20260504">
 
+  <!-- Consent Mode v2 — Defaults (DSGVO/EU). MUSS vor GTM und gtag laden. -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('consent', 'default', {
+      'ad_storage':         'denied',
+      'ad_user_data':       'denied',
+      'ad_personalization': 'denied',
+      'analytics_storage':  'denied',
+      'functionality_storage': 'granted',
+      'security_storage':      'granted',
+      'wait_for_update': 500,
+      'region': ['DE','AT','CH']
+    });
+    // Zuvor erteilte Zustimmung wiederherstellen
+    try {
+      if (localStorage.getItem('holzmann-cookie-consent') === 'all') {
+        gtag('consent', 'update', {
+          'ad_storage':         'granted',
+          'ad_user_data':       'granted',
+          'ad_personalization': 'granted',
+          'analytics_storage':  'granted'
+        });
+      }
+    } catch(e) {}
+  </script>
+  <!-- End Consent Mode v2 -->
+
   <!-- Google Tag Manager -->
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
   new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -384,9 +412,9 @@
     </div>
   </footer>
 
-  <!-- ===== COOKIE-BANNER (default sichtbar, JS hidet bei Consent) ===== -->
+  <!-- ===== COOKIE-BANNER (Consent Mode v2) ===== -->
   <div id="cookie-banner" class="cookie-banner is-hidden" role="dialog" aria-label="Cookie-Hinweis" aria-live="polite">
-    <p>Wir verwenden Cookies, um die Nutzung dieser Seite zu analysieren und unsere Services zu verbessern. Details in der <a href="https://holzmann-immobilien.de/datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
+    <p>Wir nutzen Cookies und ähnliche Technologien für <strong>Marketing &amp; Analyse</strong> (z. B. Google Ads, Google Tag Manager), um unser Angebot zu verbessern. Notwendige Cookies sind immer aktiv. Sie können jederzeit ablehnen oder zustimmen — Details in der <a href="https://holzmann-immobilien.de/datenschutz" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
     <div class="cookie-actions">
       <button type="button" id="cookie-decline" class="btn-ghost">Nur Notwendige</button>
       <button type="button" id="cookie-accept" class="btn-solid">Alle akzeptieren</button>
@@ -422,7 +450,7 @@
       document.addEventListener('keydown', function(e){ if (e.key === 'Escape') shut(); });
     })();
 
-    // Cookie-Banner — robust mit try/catch (private mode safe)
+    // Cookie-Banner + Consent Mode v2 Update — robust mit try/catch (private mode safe)
     (function(){
       var banner = document.getElementById('cookie-banner');
       var key = 'holzmann-cookie-consent';
@@ -431,9 +459,31 @@
 
       if (!stored) banner.classList.remove('is-hidden');
 
+      function gtagSafe(){
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(arguments);
+      }
+
       function setConsent(value) {
         if (hasStorage) { try { localStorage.setItem(key, value); } catch(e) {} }
         banner.classList.add('is-hidden');
+
+        if (value === 'all') {
+          gtagSafe('consent', 'update', {
+            'ad_storage':         'granted',
+            'ad_user_data':       'granted',
+            'ad_personalization': 'granted',
+            'analytics_storage':  'granted'
+          });
+        } else {
+          gtagSafe('consent', 'update', {
+            'ad_storage':         'denied',
+            'ad_user_data':       'denied',
+            'ad_personalization': 'denied',
+            'analytics_storage':  'denied'
+          });
+        }
+
         window.dataLayer = window.dataLayer || [];
         window.dataLayer.push({ event: 'cookie_consent_' + value });
       }
