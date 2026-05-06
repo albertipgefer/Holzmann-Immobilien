@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /danke-seite.html
+
+Sitemap: https://verkauf.holzmann-immobilien.de/sitemap.xml
