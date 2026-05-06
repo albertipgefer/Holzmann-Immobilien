@@ -536,6 +536,16 @@
     });
     Cal.ns['15min']('ui', { hideEventTypeDetails: false, layout: 'month_view' });
     Cal.ns['15min']('prefill', prefill);
+
+    // Nach erfolgreicher Buchung: GTM-Event + Redirect auf Danke-Seite
+    Cal.ns['15min']('on', {
+      action: 'bookingSuccessful',
+      callback: function () {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: 'cal_booking_successful', lead_type: state.leadType });
+        window.location.href = '/danke-seite.html';
+      }
+    });
   }
 
   // ---- Tracking ------------------------------------------
