@@ -417,7 +417,8 @@
       _replyto: a.email,
       _template: 'table',
       _captcha: 'false',
-      _source: 'strategie.holzmann-immobilien.de',
+      _cc: 'holzmann.immobilien.herford@gmail.com',
+      _source: 'verkauf.holzmann-immobilien.de',
 
       // Lead-Daten (im Mail-Body lesbar)
       'Lead-Typ': leadType,
@@ -431,7 +432,7 @@
       'Verkaufszeitraum': labelOf('timeline', a.timeline),
       'Entscheider': labelOf('decider', a.decider),
       'Aktuelle Nutzung': labelOf('state', a.state),
-      'Quelle': 'strategie.holzmann-immobilien.de',
+      'Quelle': 'verkauf.holzmann-immobilien.de',
       'Zeitstempel': new Date().toISOString()
     };
 
