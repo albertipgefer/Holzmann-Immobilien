@@ -416,9 +416,12 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 /* Quiz-Card im Hero rechts */
 .quiz-card-hero {
   background: var(--white);
-  border: 1px solid var(--line);
+  border: 1.5px solid var(--gold-warm);
   border-radius: var(--radius);
-  box-shadow: 0 40px 80px rgba(7,7,26,0.08);
+  box-shadow:
+    0 0 0 6px rgba(184, 137, 95, 0.08),
+    0 12px 28px rgba(184, 137, 95, 0.22),
+    0 36px 90px rgba(7, 7, 26, 0.18);
   padding: 32px 24px;
   position: relative;
   overflow: hidden;
@@ -427,9 +430,9 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 .quiz-card-hero::before {
   content: '';
   position: absolute;
-  top: 0; left: 36px; right: 36px;
-  height: 2px;
-  background: var(--gold);
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--gold-warm) 0%, var(--gold) 50%, var(--gold-warm) 100%);
 }
 .quiz-card-eyebrow {
   font-family: var(--b-font);
@@ -802,7 +805,7 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
   border-radius: var(--radius);
   padding: 36px 12px;
 }
-.case-stat { text-align: center; padding: 12px 6px; border-left: 1px solid var(--line); }
+.case-stat { text-align: left; padding: 12px 6px 12px 18px; border-left: 1px solid var(--line); }
 .case-stat:first-child { border-left: 0; }
 .case-stat-number {
   display: block;
@@ -1141,5 +1144,301 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   TRUST-STRIP (zwischen Hero und numbers)
+   ========================================================= */
+.trust-strip {
+  background: var(--bg-alt);
+  padding: 32px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.trust-strip-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+.trust-strip-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 0 12px;
+  border-right: 1px solid var(--line);
+}
+.trust-strip-item:last-child { border-right: 0; }
+.trust-strip-value {
+  font-family: var(--h-font);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--gold);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.trust-strip-stars {
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  line-height: 1;
+}
+.trust-strip-label {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.trust-strip-label strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.trust-strip-label em {
+  font-style: normal;
+  color: var(--ink);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 768px) {
+  .trust-strip-grid { grid-template-columns: 1fr 1fr; gap: 20px 16px; }
+  .trust-strip-item { border-right: 0; padding: 14px 8px; }
+  .trust-strip-item:nth-child(odd) { border-right: 1px solid var(--line); }
+  .trust-strip-item:nth-child(1),
+  .trust-strip-item:nth-child(2) { border-bottom: 1px solid var(--line); padding-bottom: 18px; }
+  .trust-strip-value { font-size: 22px; }
+  .trust-strip-label { font-size: 12px; }
+}
+
+/* =========================================================
+   FALLSTUDIE II — Reverse-Layout
+   ========================================================= */
+.case-study-grid-reverse > div:first-child { order: 2; }
+.case-study-grid-reverse > div:last-child { order: 1; }
+@media (max-width: 900px) {
+  /* Mobile: gleiche Reihenfolge wie Fallstudie 1 — Quote oben, Stats darunter */
+  .case-study-grid-reverse > div:first-child { order: 2; }   /* Stats-Grid nach unten */
+  .case-study-grid-reverse > div:last-child  { order: 1; }   /* Quote nach oben */
+}
+
+/* =========================================================
+   TESTIMONIALS-SECTION
+   ========================================================= */
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 40px;
+}
+.testimonial-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+}
+.testimonial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(7, 7, 26, 0.06);
+  border-color: var(--line-strong);
+}
+.testimonial-stars {
+  font-size: 18px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  line-height: 1;
+}
+.testimonial-card blockquote {
+  font-family: var(--h-font);
+  font-weight: 300;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  font-style: italic;
+  letter-spacing: -0.005em;
+}
+.testimonial-cite {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: auto;
+}
+@media (max-width: 900px) {
+  .testimonials-grid { grid-template-columns: 1fr; gap: 18px; }
+  .testimonial-card blockquote { font-size: 16px; }
+}
+
+/* =========================================================
+   HERO-TRUST-LINE (direkt unter Hero-Sub, nur Desktop)
+   Mobile-Variante ist in der Quiz-Card (.quiz-card-trust).
+   ========================================================= */
+.hero-trust-line {
+  display: none;  /* Mobile: ausgeblendet — Mobile nutzt .quiz-card-trust */
+}
+@media (min-width: 980px) {
+  .hero-trust-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin-top: 22px;
+    padding: 12px 18px;
+    background: var(--bg-alt);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.3;
+    white-space: nowrap;
+    width: max-content;
+    max-width: 100%;
+  }
+  .hero-trust-line .htl-stars {
+    font-size: 14px;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .hero-trust-line .htl-item strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .hero-trust-line .htl-sep {
+    color: var(--line-strong);
+    font-weight: 400;
+    opacity: 0.6;
+  }
+}
+
+/* =========================================================
+   QUIZ-MIKRO-TRUST (unter Submit-Button)
+   ========================================================= */
+.quiz-micro-trust {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   QUIZ-CARD-TRUST — Trust direkt in der Quiz-Card
+   Verbindet Vertrauenssignale visuell mit dem Quiz.
+   ========================================================= */
+/* Mobile: glasige Trust-Box UNTER dem Quiz.
+   Subtle Gold-Tint + frosted look + Sterne-Header + 2 Zeilen mit Punkten. */
+.quiz-card-trust {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 22px 0 0;
+  padding: 14px 18px 13px;
+  background: rgba(184, 137, 95, 0.06);
+  border: 1px solid rgba(184, 137, 95, 0.22);
+  border-radius: 14px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.35;
+  text-align: center;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.quiz-card-trust .qct-stars {
+  font-size: 14px;
+  letter-spacing: 2.5px;
+  color: var(--gold);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.quiz-card-trust .qct-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.quiz-card-trust .qct-item strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.quiz-card-trust .qct-sep {
+  color: var(--gold-warm);
+  opacity: 0.55;
+  font-weight: 500;
+}
+@media (min-width: 980px) {
+  /* Desktop: Trust ist im Hero-Text unter dem Sub (.hero-trust-line) */
+  .quiz-card-trust { display: none; }
+}
+
+/* =========================================================
+   HERO MOBILE-OPTIMIERUNG
+   H1 kleiner, damit Quiz schneller sichtbar
+   ========================================================= */
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: clamp(26px, 6.8vw, 38px);
+    line-height: 1.12;
+    margin-bottom: 14px;
+    max-width: 100%;
+  }
+  .hero-sub {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .hero { padding: 28px 0 36px; }
+  .hero-grid { gap: 22px; }
+}
+
+/* =========================================================
+   FALLSTUDIE MOBILE-FIX
+   case-stats-grid: auf Mobile 1-spaltig mit horizontalen Trennern
+   (statt 3-spaltig, das auf 390px-Viewport rausbricht)
+   ========================================================= */
+@media (max-width: 768px) {
+  .case-stats-grid {
+    grid-template-columns: 1fr;
+    padding: 18px 16px;
+    max-width: 100%;
+  }
+  .case-stat {
+    padding: 14px 12px;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 16px;
+    text-align: left;
+  }
+  .case-stat:first-child { border-top: 0; }
+  .case-stat-number { font-size: 36px; margin-bottom: 0; }
+  .case-stat-label {
+    margin-top: 0;
+    font-size: 11px;
+    line-height: 1.25;
+    letter-spacing: 0.18em;
+  }
+}
+
+/* =========================================================
+   QUIZ-SUBMIT — kompakter Button (weniger dick)
+   ========================================================= */
+.btn-solid.btn-solid-compact {
+  padding: 12px 22px;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+@media (max-width: 600px) {
+  .btn-solid.btn-solid-compact {
+    padding: 11px 18px;
+    font-size: 13.5px;
   }
 }

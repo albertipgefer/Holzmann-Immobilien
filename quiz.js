@@ -29,6 +29,8 @@
   ];
 
   // ---- Quiz-Konfiguration --------------------------------
+  // Reihenfolge bewusst gewählt: niedrigste Hürde zuerst (1-Klick-Antworten),
+  // PLZ als Tipp-Eingabe später, Lead-Daten ganz am Schluss.
   const QUIZ_STEPS = [
     {
       id: 'property_type',
@@ -42,12 +44,6 @@
         { value: 'wohnung', label: 'Eigentumswohnung' },
         { value: 'grundstueck', label: 'Grundstück' }
       ]
-    },
-    {
-      id: 'plz',
-      title: 'Wo liegt die Immobilie?',
-      help: 'Wir prüfen, ob Ihre Immobilie in unserem Kerngebiet (Radius 50 km um Herford) liegt.',
-      type: 'plz'
     },
     {
       id: 'timeline',
@@ -74,20 +70,15 @@
       ]
     },
     {
-      id: 'state',
-      title: 'Wie ist die Immobilie aktuell genutzt?',
-      help: 'Das hilft uns, die Verkaufsstrategie auf Ihre Situation auszurichten.',
-      type: 'single',
-      options: [
-        { value: 'selbst',  label: 'Selbst genutzt' },
-        { value: 'vermietet', label: 'Vermietet' },
-        { value: 'leer',    label: 'Leerstehend' }
-      ]
+      id: 'plz',
+      title: 'Wo liegt die Immobilie?',
+      help: 'Wir prüfen, ob Ihre Immobilie in unserem Kerngebiet (Radius 50 km um Herford) liegt.',
+      type: 'plz'
     },
     {
       id: 'lead',
-      title: 'Damit wir Sie pünktlich zurückrufen können.',
-      help: 'Ihre Daten werden ausschließlich für dieses Erstgespräch verwendet (DSGVO-konform).',
+      title: 'Fast geschafft — Ihre Kontaktdaten.',
+      help: 'Ihre Daten werden ausschließlich für diese Anfrage verwendet (DSGVO-konform). 100 % unverbindlich.',
       type: 'lead'
     }
   ];
@@ -113,7 +104,8 @@
   const state = {
     stepIndex: 0,
     answers: {},
-    leadType: null
+    leadType: null,
+    startedFired: false
   };
 
   const root = $('#quiz-app');
@@ -201,8 +193,9 @@
         const val = input.value.trim();
         if (!/^[0-9]{5}$/.test(val)) { field.classList.add('has-error'); input.focus(); return; }
         state.answers.plz = val;
+        fireQuizStartedOnce('plz');
         state.stepIndex++;
-        push('quiz_step_completed', { step_id: 'plz', step_index: 1 });
+        push('quiz_step_completed', { step_id: 'plz', step_index: state.stepIndex });
         render();
       }
     }, ['Weiter ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')]);
@@ -225,11 +218,9 @@
     const form = create('form', { class: 'quiz-form', novalidate: 'true' });
 
     const fields = [
-      { id: 'firstname', label: 'Vorname',  type: 'text',  autocomplete: 'given-name',  pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}", placeholder: 'Vorname',   errorMsg: 'Bitte geben Sie Ihren Vornamen ein.' },
-      { id: 'lastname',  label: 'Nachname', type: 'text',  autocomplete: 'family-name', pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}", placeholder: 'Nachname', errorMsg: 'Bitte geben Sie Ihren Nachnamen ein.' },
+      { id: 'name',      label: 'Vor- und Nachname', type: 'text', autocomplete: 'name', pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}.+", placeholder: 'z. B. Maria Musterfrau', errorMsg: 'Bitte geben Sie Vor- und Nachname ein.' },
       { id: 'email',     label: 'E-Mail-Adresse', type: 'email', autocomplete: 'email', placeholder: 'name@beispiel.de', errorMsg: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' },
-      { id: 'phone',     label: 'Telefon (für die Bestätigung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' },
-      { id: 'address',   label: 'Adresse der Immobilie (Straße, Hausnummer)', type: 'text', autocomplete: 'street-address', placeholder: 'Musterstraße 12', pattern: '.{4,}', errorMsg: 'Bitte geben Sie Straße und Hausnummer an.' }
+      { id: 'phone',     label: 'Telefon (für die Bestätigung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
     ];
 
     fields.forEach(f => {
@@ -287,14 +278,19 @@
     honey.setAttribute('aria-hidden', 'true');
     form.appendChild(honey);
 
-    const submitBtn = create('button', { type: 'submit', class: 'btn-solid' }, [
-      'Erstgespräch sichern ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')
+    const submitBtn = create('button', { type: 'submit', class: 'btn-solid btn-solid-compact' }, [
+      'Jetzt anfragen ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')
     ]);
 
     const actions = create('div', { class: 'quiz-actions' });
     actions.appendChild(create('button', { type: 'button', class: 'btn-ghost', onclick: back }, '← Zurück'));
     actions.appendChild(submitBtn);
     form.appendChild(actions);
+
+    const microTrust = create('p', { class: 'quiz-micro-trust' },
+      '✓ 100 % unverbindlich  ·  ✓ Ihre Daten sind sicher  ·  ✓ DSGVO-konform'
+    );
+    form.appendChild(microTrust);
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -307,6 +303,7 @@
         let ok = val.length > 0;
         if (f.type === 'email') ok = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(val);
         else if (f.tel) ok = /^[0-9 ]{6,16}$/.test(val.replace(/^0+/, ''));
+        else if (f.id === 'name') ok = /^[-A-Za-zÄÖÜäöüß' .]{2,}\s+[-A-Za-zÄÖÜäöüß' .]{2,}/.test(val);
         else if (f.pattern) ok = new RegExp('^' + f.pattern + '$').test(val);
         if (!ok) { fwrap.classList.add('has-error'); valid = false; }
         else { fwrap.classList.remove('has-error'); state.answers[f.id] = f.tel ? '+49 ' + val.replace(/^0+/, '').trim() : val; }
@@ -325,7 +322,7 @@
       submitBtn.innerHTML = 'Wird gesendet …';
       submitLead().then(() => renderConfirm()).catch(err => {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Erstgespräch sichern <span class="arrow" aria-hidden="true">→</span>';
+        submitBtn.innerHTML = 'Jetzt anfragen <span class="arrow" aria-hidden="true">→</span>';
         alert('Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder rufen Sie uns telefonisch unter ' + CONFIG.contactPhoneDisplay + ' an.');
         // eslint-disable-next-line no-console
         console.error('Lead submit failed', err);
@@ -345,8 +342,14 @@
   }
 
   // ---- Step-Logik ----------------------------------------
+  function fireQuizStartedOnce(stepId) {
+    if (state.startedFired) return;
+    state.startedFired = true;
+    push('quiz_started', { source: 'first_answer', first_step_id: stepId });
+  }
   function selectAndNext(stepId, value) {
     state.answers[stepId] = value;
+    fireQuizStartedOnce(stepId);
     push('quiz_step_completed', { step_id: stepId, value: value, step_index: state.stepIndex });
     if (state.stepIndex < QUIZ_STEPS.length - 1) {
       state.stepIndex++;
@@ -383,6 +386,11 @@
 
   // Bereitet User-Daten für Google Ads Enhanced Conversions auf.
   // Google akzeptiert Klartext und hasht intern selbst (SHA-256).
+  function splitName(full) {
+    const parts = (full || '').toString().trim().split(/\s+/);
+    if (parts.length <= 1) return { first: parts[0] || '', last: '' };
+    return { first: parts[0], last: parts.slice(1).join(' ') };
+  }
   function buildEnhancedConversionData(a) {
     function clean(s) { return (s || '').toString().trim().toLowerCase(); }
     function normalizePhone(p) {
@@ -393,13 +401,13 @@
       if (s.indexOf('0') === 0) return '+49' + s.slice(1);
       return '+49' + s;
     }
+    const n = splitName(a.name);
     return {
       email:       clean(a.email),
       phone_number: normalizePhone(a.phone),
       address: {
-        first_name:  clean(a.firstname),
-        last_name:   clean(a.lastname),
-        street:      clean(a.address),
+        first_name:  clean(n.first),
+        last_name:   clean(n.last),
         postal_code: clean(a.plz),
         country:     'DE'
       }
@@ -409,7 +417,8 @@
   function submitLead() {
     const a = state.answers;
     const leadType = (state.leadType || '').toUpperCase();
-    const fullName = ((a.firstname || '') + ' ' + (a.lastname || '')).trim();
+    const fullName = (a.name || '').trim();
+    const n = splitName(fullName);
 
     const payload = {
       // Formsubmit.co Steuerfelder
@@ -422,16 +431,15 @@
 
       // Lead-Daten (im Mail-Body lesbar)
       'Lead-Typ': leadType,
-      'Vorname': a.firstname,
-      'Nachname': a.lastname,
+      'Name': fullName,
+      'Vorname': n.first,
+      'Nachname': n.last,
       'E-Mail': a.email,
       'Telefon': a.phone,
-      'Objekt-Adresse': a.address,
       'Objekt-Typ': labelOf('property_type', a.property_type),
       'PLZ Objekt': a.plz,
       'Verkaufszeitraum': labelOf('timeline', a.timeline),
       'Entscheider': labelOf('decider', a.decider),
-      'Aktuelle Nutzung': labelOf('state', a.state),
       'Quelle': 'verkauf.holzmann-immobilien.de',
       'Zeitstempel': new Date().toISOString()
     };
@@ -507,16 +515,14 @@
     // Lead-Daten als Prefill an Cal.com übergeben
     const a = state.answers;
     const prefill = {
-      name: ((a.firstname || '') + ' ' + (a.lastname || '')).trim(),
+      name: (a.name || '').trim(),
       email: a.email || '',
       smsReminderNumber: a.phone || '',
       notes:
         'Objekt: ' + (labelOf('property_type', a.property_type) || '') +
         ' · PLZ ' + (a.plz || '') +
-        ' · Adresse: ' + (a.address || '') +
         ' · Verkauf: ' + (labelOf('timeline', a.timeline) || '') +
-        ' · Entscheider: ' + (labelOf('decider', a.decider) || '') +
-        ' · Nutzung: ' + (labelOf('state', a.state) || '')
+        ' · Entscheider: ' + (labelOf('decider', a.decider) || '')
     };
 
     // Cal.com EU Inline-Embed-Loader (offizieller Snippet, einmalig laden)
@@ -586,10 +592,12 @@
   }
 
   // ---- Init ----------------------------------------------
-  // CTA-Buttons der Seite tracken
+  // CTA-Buttons als Scroll-Trigger zum Quiz (Mikro-Conversion).
+  // WICHTIG: feuert NICHT mehr `quiz_started` — das passiert jetzt erst
+  // beim tatsächlichen Beantworten der ersten Frage (fireQuizStartedOnce).
   document.querySelectorAll('[data-cta]').forEach(btn => {
     btn.addEventListener('click', () => {
-      push('quiz_started', { source: btn.getAttribute('data-cta') });
+      push('cta_click_to_quiz', { source: btn.getAttribute('data-cta') });
     });
   });
 
