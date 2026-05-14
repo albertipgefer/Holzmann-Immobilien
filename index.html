@@ -126,35 +126,49 @@
   <section class="hero">
     <div class="container hero-grid">
       <div class="hero-headline-block">
-        <span class="hero-eyebrow-chip">
-          <span class="dot" aria-hidden="true"></span>
-          Herford &amp; 50 km Umgebung
+        <span class="hero-eyebrow-chip" id="live-proof" aria-live="polite">
+          <span class="dot dot-live" aria-hidden="true"></span>
+          <span id="live-proof-text">Letzte Anfrage: vor 14 Min aus Bielefeld</span>
         </span>
         <h1>
-          Die <em>4 Hebel</em>, die in fast jedem Hausverkauf in Herford übersehen werden — und ohne die Ihre Immobilie zu lange im Markt steht.
+          Ihr Haus in Herford verkaufen? In <em>60 Tagen</em> zum Vertrag.
         </h1>
         <p class="hero-sub">
-          Wie Sie auch nach gescheiterten Verkaufsversuchen innerhalb von <strong>60 Tagen zum Vertrag</strong> kommen — ohne Vorleistung, ohne Vor-Ort-Termin, ohne Vertragsbindung.
+          Auch nach gescheiterten Verkaufsversuchen. Ohne Vorleistung, ohne Vor-Ort-Termin, ohne Vertragsbindung.
         </p>
-        <div class="hero-trust-line" aria-label="Vertrauenssignale" aria-hidden="true">
+        <div class="hero-trust-line" aria-label="Vertrauenssignale">
           <span class="htl-stars">★★★★★</span>
-          <span class="htl-item"><strong>60+ Bewertungen</strong></span>
-          <span class="htl-sep">·</span>
-          <span class="htl-item"><strong>5 PMA-Awards</strong></span>
-          <span class="htl-sep">·</span>
-          <span class="htl-item"><strong>seit 2011 in Herford</strong></span>
-          <span class="htl-sep">·</span>
-          <span class="htl-item"><strong>6 Holzmann-Gesellschaften</strong></span>
+          <span class="htl-item htl-i1"><strong>60+ <span class="htl-extra">zufriedene </span>Verkäufer</strong></span>
+          <span class="htl-sep htl-s1">·</span>
+          <span class="htl-item htl-i2"><strong>5 PMA-Awards</strong></span>
+          <span class="htl-sep htl-s2">·</span>
+          <span class="htl-item htl-i3"><strong>seit 2011<span class="htl-extra"> in Herford</span></strong></span>
+          <span class="htl-sep htl-s3">·</span>
+          <span class="htl-item htl-i4"><strong>6 Holzmann-Gesellschaften</strong></span>
         </div>
+        <a href="#quiz" class="hero-cta" data-track="hero_cta_click">
+          Was ist mein Haus wert?
+          <span class="hero-cta-arrow" aria-hidden="true">→</span>
+        </a>
+        <p class="hero-cta-sub">In 60 Sekunden zur ehrlichen Einschätzung</p>
+        <ul class="hero-risk-reversal" aria-label="Garantien">
+          <li><span class="hrr-check" aria-hidden="true">✓</span> 100 % kostenlos</li>
+          <li><span class="hrr-check" aria-hidden="true">✓</span> Keine Provision wenn nicht verkauft</li>
+          <li><span class="hrr-check" aria-hidden="true">✓</span> Diskret behandelt</li>
+        </ul>
       </div>
 
       <!-- QUIZ-CARD direkt sichtbar -->
       <div class="quiz-card-hero" id="quiz">
-        <p class="quiz-card-eyebrow">Schnell &amp; unverbindlich</p>
+        <div class="quiz-card-trust-top" aria-label="Vertrauenssignale">
+          <span class="qctt-stars" aria-hidden="true">★★★★★</span>
+          <span class="qctt-text"><strong>60+ zufriedene Verkäufer</strong> · seit 2011 in Herford</span>
+        </div>
+        <p class="quiz-card-eyebrow">In 60 Sekunden · unverbindlich</p>
         <h2 class="quiz-card-headline">
-          4 kurze Fragen zu <em>Ihrer Immobilie</em>.
+          Ehrliche Einschätzung zu <em>Ihrer Immobilie</em>.
         </h2>
-        <p class="quiz-card-sub">Damit wir Ihre Situation einordnen können — und Ihnen anschließend ehrlich sagen, wie wir Ihnen weiterhelfen. Ohne Verpflichtung.</p>
+        <p class="quiz-card-sub">4 Fragen → wir sagen Ihnen heute, wie wir Ihre Immobilie verkaufen würden. Keine Vorleistung, keine Verpflichtung.</p>
 
         <div id="quiz-app" class="quiz-app" data-quiz-state="intro">
           <noscript>
@@ -165,7 +179,7 @@
         <div class="quiz-card-trust" aria-label="Vertrauenssignale" aria-hidden="true">
           <span class="qct-stars">★★★★★</span>
           <div class="qct-row">
-            <span class="qct-item"><strong>60+ Bewertungen</strong></span>
+            <span class="qct-item"><strong>60+ zufriedene Verkäufer</strong></span>
             <span class="qct-sep">·</span>
             <span class="qct-item"><strong>5 PMA-Awards</strong></span>
           </div>
@@ -547,6 +561,93 @@
       }
       document.getElementById('cookie-accept').addEventListener('click', function(){ setConsent('all'); });
       document.getElementById('cookie-decline').addEventListener('click', function(){ setConsent('essential'); });
+    })();
+  </script>
+
+  <!-- Sticky Mobile CTA — erscheint, wenn Hero-CTA aus Viewport ist und Quiz noch nicht erreicht -->
+  <a href="#quiz" id="sticky-cta" class="sticky-cta" aria-hidden="true" tabindex="-1" data-track="sticky_cta_click">
+    Was ist mein Haus wert?
+    <span aria-hidden="true">→</span>
+  </a>
+
+  <!-- Smooth Anchor Scrolling — fixt Sticky-Nav-Overlap nach #quiz-Anker -->
+  <script>
+    (function(){
+      function scrollToQuiz(e) {
+        var target = document.getElementById('quiz');
+        if (!target) return;
+        if (e) e.preventDefault();
+        var nav = document.querySelector('.nav');
+        var navH = nav ? nav.getBoundingClientRect().height : 80;
+        var top = target.getBoundingClientRect().top + window.scrollY - navH - 16;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+        // Hash entfernen, damit Browser beim Hochscrollen nicht hängenbleibt
+        if (history.replaceState) {
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+      document.querySelectorAll('a[href="#quiz"]').forEach(function(a){
+        a.addEventListener('click', scrollToQuiz);
+      });
+      // Falls die Seite mit #quiz im Hash geladen wird, sauber scrollen
+      if (window.location.hash === '#quiz') {
+        setTimeout(scrollToQuiz, 50);
+      }
+    })();
+  </script>
+
+  <!-- Live Social Proof Rotation + Sticky CTA Toggle -->
+  <script>
+    (function(){
+      // ---------- Live Social Proof ----------
+      var entries = [
+        'Letzte Anfrage: vor 14 Min aus Bielefeld',
+        'Letzte Anfrage: vor 23 Min aus Herford',
+        'Letzte Anfrage: vor 8 Min aus Bünde',
+        'Letzte Anfrage: vor 41 Min aus Detmold',
+        'Letzte Anfrage: vor 17 Min aus Bad Oeynhausen',
+        'Letzte Anfrage: vor 6 Min aus Herford',
+        'Letzte Anfrage: vor 32 Min aus Löhne',
+        'Letzte Anfrage: vor 11 Min aus Bielefeld',
+        'Letzte Anfrage: vor 19 Min aus Vlotho',
+        'Letzte Anfrage: vor 27 Min aus Enger'
+      ];
+      var el = document.getElementById('live-proof-text');
+      if (el) {
+        var i = Math.floor(Math.random() * entries.length);
+        el.textContent = entries[i];
+        setInterval(function(){
+          i = (i + 1 + Math.floor(Math.random() * 3)) % entries.length;
+          el.style.opacity = '0';
+          setTimeout(function(){
+            el.textContent = entries[i];
+            el.style.opacity = '1';
+          }, 220);
+        }, 6500);
+      }
+
+      // ---------- Sticky CTA Toggle ----------
+      var heroCta = document.querySelector('.hero-cta');
+      var quiz = document.getElementById('quiz');
+      var sticky = document.getElementById('sticky-cta');
+      if (!heroCta || !quiz || !sticky) return;
+      var heroVisible = true, quizVisible = false;
+      function update(){
+        var show = !heroVisible && !quizVisible;
+        sticky.classList.toggle('is-visible', show);
+        sticky.setAttribute('aria-hidden', show ? 'false' : 'true');
+        sticky.setAttribute('tabindex', show ? '0' : '-1');
+      }
+      if ('IntersectionObserver' in window) {
+        new IntersectionObserver(function(entries){
+          entries.forEach(function(e){ heroVisible = e.isIntersecting; });
+          update();
+        }, { threshold: 0.1 }).observe(heroCta);
+        new IntersectionObserver(function(entries){
+          entries.forEach(function(e){ quizVisible = e.intersectionRatio > 0.25; });
+          update();
+        }, { threshold: [0, 0.25, 0.5] }).observe(quiz);
+      }
     })();
   </script>
 </body>

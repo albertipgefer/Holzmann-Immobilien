@@ -305,7 +305,7 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
   z-index: 2;
   display: grid;
   gap: 28px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 .hero-headline-block { order: 1; text-align: center; }
 .hero-headline-block h1 { margin-left: auto; margin-right: auto; }
@@ -369,6 +369,157 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 }
 .hero h1 em { font-weight: 400; }
 
+/* HERO-CTA — Conversion-Button direkt unter Trust */
+.hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 16px 28px;
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--b-font);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 8px 24px rgba(7, 7, 26, 0.18), 0 2px 6px rgba(7, 7, 26, 0.1);
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+  width: max-content;
+  max-width: 100%;
+}
+.hero-cta:hover {
+  transform: translateY(-1px);
+  background: var(--gold);
+  box-shadow: 0 12px 32px rgba(184, 137, 95, 0.35), 0 4px 10px rgba(184, 137, 95, 0.2);
+}
+.hero-cta-arrow {
+  font-size: 18px;
+  line-height: 1;
+  transition: transform .2s ease;
+}
+.hero-cta:hover .hero-cta-arrow { transform: translateX(3px); }
+.hero-cta-sub {
+  margin: 10px 0 0;
+  font-family: var(--b-font);
+  font-size: 12.5px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- HERO RISK-REVERSAL ---------- */
+.hero-risk-reversal {
+  list-style: none;
+  padding: 0;
+  margin: 14px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  font-family: var(--b-font);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.hero-risk-reversal li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.hero-risk-reversal .hrr-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  flex-shrink: 0;
+}
+@media (max-width: 979px) {
+  .hero-risk-reversal { justify-content: center; }
+}
+@media (max-width: 768px) {
+  .hero-risk-reversal {
+    flex-direction: column;
+    align-items: center;
+    gap: 9px;
+    margin-top: 16px;
+    font-size: 13.5px;
+  }
+  .hero-risk-reversal li { gap: 8px; }
+  .hero-risk-reversal .hrr-check {
+    width: 18px; height: 18px;
+    font-size: 11px;
+  }
+}
+
+/* ---------- LIVE-PROOF DOT (pulsing grün statt gold) ---------- */
+.hero-eyebrow-chip .dot-live {
+  background: #16a34a;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.5);
+  animation: dot-pulse 2s ease-out infinite;
+}
+@keyframes dot-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(22, 163, 74, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+#live-proof-text {
+  transition: opacity .22s ease;
+}
+
+/* ---------- STICKY MOBILE CTA ---------- */
+.sticky-cta {
+  position: fixed;
+  left: 12px; right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px 20px;
+  background: var(--ink);
+  color: var(--white);
+  font-family: var(--b-font);
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(7, 7, 26, 0.28), 0 2px 8px rgba(7, 7, 26, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(14px);
+  transition: opacity .25s ease, transform .25s ease;
+}
+.sticky-cta.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+.sticky-cta:hover, .sticky-cta:focus-visible {
+  background: var(--gold);
+}
+/* Desktop & größere Tablets: sticky-CTA ausblenden — Quiz immer per Sidebar/Layout sichtbar */
+@media (min-width: 980px) {
+  .sticky-cta { display: none !important; }
+}
+@media (max-width: 979px) {
+  .hero-cta { margin-left: auto; margin-right: auto; display: flex; width: 100%; max-width: 360px; }
+  .hero-cta-sub { text-align: center; }
+}
+/* Desktop: CTA + Sub linksbündig wie der Rest des Hero-Texts */
+@media (min-width: 980px) {
+  .hero-headline-block { display: flex; flex-direction: column; align-items: flex-start; }
+  .hero-cta-sub { align-self: flex-start; }
+}
+
 .hero-sub {
   font-family: var(--h-font);
   font-weight: 300;
@@ -425,6 +576,11 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
   padding: 32px 24px;
   position: relative;
   overflow: hidden;
+  scroll-margin-top: 100px;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 96px;
 }
 @media (min-width: 600px) { .quiz-card-hero { padding: 40px 36px; } }
 .quiz-card-hero::before {
@@ -434,6 +590,35 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
   height: 6px;
   background: linear-gradient(90deg, var(--gold-warm) 0%, var(--gold) 50%, var(--gold-warm) 100%);
 }
+/* QUIZ-CARD-TRUST-TOP (nur Desktop sichtbar) */
+.quiz-card-trust-top { display: none; }
+@media (min-width: 980px) {
+  .quiz-card-trust-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -8px -8px 18px;
+    padding: 10px 14px;
+    background: linear-gradient(90deg, rgba(184, 137, 95, 0.10) 0%, rgba(184, 137, 95, 0.04) 100%);
+    border: 1px solid rgba(184, 137, 95, 0.22);
+    border-radius: 10px;
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .quiz-card-trust-top .qctt-stars {
+    color: var(--gold);
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .quiz-card-trust-top .qctt-text strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+}
+
 .quiz-card-eyebrow {
   font-family: var(--b-font);
   font-size: 11px;
@@ -1273,45 +1458,60 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 }
 
 /* =========================================================
-   HERO-TRUST-LINE (direkt unter Hero-Sub, nur Desktop)
-   Mobile-Variante ist in der Quiz-Card (.quiz-card-trust).
+   HERO-TRUST-LINE (direkt unter Hero-Sub — Mobile, Tablet & Desktop)
+   Zeigt Trust BEVOR der Nutzer das Quiz wahrnimmt.
    ========================================================= */
 .hero-trust-line {
-  display: none;  /* Mobile: ausgeblendet — Mobile nutzt .quiz-card-trust */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 16px auto 0;
+  padding: 10px 14px;
+  background: var(--bg-alt);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.3;
+  min-width: 0;
+  max-width: 100%;
+}
+/* Mobile (≤768): nur 2 Items in 1 Zeile, kompakter Text */
+@media (max-width: 768px) {
+  .hero-trust-line {
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 11.5px;
+    white-space: nowrap;
+  }
+  .hero-trust-line .htl-extra { display: none; }
+  .hero-trust-line .htl-i2,
+  .hero-trust-line .htl-i4,
+  .hero-trust-line .htl-s2,
+  .hero-trust-line .htl-s3 { display: none; }
+  /* Sichtbar: ★★★★★ · 60+ Verkäufer · seit 2011 */
+}
+.hero-trust-line .htl-stars {
+  font-size: 13px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  line-height: 1;
+}
+.hero-trust-line .htl-item strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.hero-trust-line .htl-sep {
+  color: var(--line-strong);
+  font-weight: 400;
+  opacity: 0.6;
 }
 @media (min-width: 980px) {
-  .hero-trust-line {
-    display: flex;
-    align-items: center;
-    flex-wrap: nowrap;
-    gap: 10px;
-    margin-top: 22px;
-    padding: 12px 18px;
-    background: var(--bg-alt);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    font-size: 12.5px;
-    color: var(--muted);
-    line-height: 1.3;
-    white-space: nowrap;
-    width: max-content;
-    max-width: 100%;
-  }
-  .hero-trust-line .htl-stars {
-    font-size: 14px;
-    letter-spacing: 1.5px;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .hero-trust-line .htl-item strong {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .hero-trust-line .htl-sep {
-    color: var(--line-strong);
-    font-weight: 400;
-    opacity: 0.6;
-  }
+  /* Desktop: hero-trust-line ausgeblendet — Trust ist jetzt OBEN in der Quiz-Card */
+  .hero-trust-line { display: none; }
 }
 
 /* =========================================================
@@ -1333,7 +1533,7 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 /* Mobile: glasige Trust-Box UNTER dem Quiz.
    Subtle Gold-Tint + frosted look + Sterne-Header + 2 Zeilen mit Punkten. */
 .quiz-card-trust {
-  display: flex;
+  display: none; /* Trust ist jetzt im Hero (.hero-trust-line) für alle Breakpoints */
   flex-direction: column;
   align-items: center;
   gap: 6px;
@@ -1384,17 +1584,18 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
    ========================================================= */
 @media (max-width: 768px) {
   .hero h1 {
-    font-size: clamp(26px, 6.8vw, 38px);
-    line-height: 1.12;
-    margin-bottom: 14px;
+    font-size: clamp(30px, 8vw, 36px);
+    line-height: 1.08;
+    letter-spacing: -0.025em;
+    margin-bottom: 12px;
     max-width: 100%;
   }
   .hero-sub {
     font-size: 15px;
-    line-height: 1.5;
+    line-height: 1.45;
   }
-  .hero { padding: 28px 0 36px; }
-  .hero-grid { gap: 22px; }
+  .hero { padding: 20px 0 28px; }
+  .hero-grid { gap: 18px; }
 }
 
 /* =========================================================
