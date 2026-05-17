@@ -1643,3 +1643,283 @@ html {
     font-size: 13.5px;
   }
 }
+
+/* =========================================================
+   CTA-VERFEINERUNG — 2026-05-17
+   Shine-Sweep, weicheres Hover-Lift, taktiles Klick-Feedback.
+   Ziel: Buttons wirken moderner und laden zum Klicken ein.
+   ========================================================= */
+
+/* Basis: Buttons werden zum Bühnenraum für den Licht-Sweep */
+.btn-solid,
+.hero-cta,
+.nav-cta,
+.sticky-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Schräger Licht-Streifen, der über den Button wischt */
+.btn-solid::before,
+.hero-cta::before,
+.nav-cta::before,
+.sticky-cta::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -130%;
+  width: 75%;
+  height: 100%;
+  background: linear-gradient(115deg,
+              transparent 0%,
+              rgba(255, 255, 255, 0.38) 50%,
+              transparent 100%);
+  transform: skewX(-22deg);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Sweep läuft beim Hover einmal durch */
+.btn-solid:hover::before,
+.nav-cta:hover::before,
+.sticky-cta:hover::before {
+  transition: left .65s cubic-bezier(.22, .61, .36, 1);
+  left: 140%;
+}
+
+/* Weicheres Hover-Lift + Gold-Glow für die Solid-Buttons */
+.btn-solid {
+  transition: background .3s ease,
+              transform .25s cubic-bezier(.22, .61, .36, 1),
+              box-shadow .3s ease;
+}
+.btn-solid:hover {
+  box-shadow: 0 12px 28px rgba(184, 137, 95, 0.30),
+              0 3px 8px rgba(184, 137, 95, 0.18);
+}
+.nav-cta {
+  transition: background .25s ease,
+              transform .25s cubic-bezier(.22, .61, .36, 1),
+              box-shadow .3s ease;
+}
+.nav-cta:hover {
+  box-shadow: 0 8px 20px rgba(184, 137, 95, 0.28);
+}
+
+/* Taktiles Klick-Feedback — Button reagiert spürbar auf den Druck */
+.btn-solid:active,
+.hero-cta:active,
+.nav-cta:active,
+.sticky-cta:active {
+  transform: scale(.97);
+  transition: transform .08s ease;
+}
+
+/* Hero-Haupt-CTA: dezenter Dauer-Sweep + sanfter „Atem"-Glow,
+   damit der Blick ohne Aufdringlichkeit am Button hängenbleibt. */
+.hero-cta::before {
+  animation: cta-shine 6s ease-in-out 2.5s infinite;
+}
+.hero-cta:hover::before {
+  animation: none;
+  transition: left .65s cubic-bezier(.22, .61, .36, 1);
+  left: 140%;
+}
+@keyframes cta-shine {
+  0%   { left: -130%; }
+  18%  { left: 140%; }
+  100% { left: 140%; }
+}
+.hero-cta {
+  animation: cta-breathe 4.5s ease-in-out infinite;
+}
+.hero-cta:hover {
+  animation: none;
+}
+@keyframes cta-breathe {
+  0%, 100% {
+    box-shadow: 0 8px 24px rgba(7, 7, 26, 0.18),
+                0 2px 6px rgba(7, 7, 26, 0.10);
+  }
+  50% {
+    box-shadow: 0 10px 32px rgba(184, 137, 95, 0.32),
+                0 3px 10px rgba(184, 137, 95, 0.18);
+  }
+}
+
+/* Barrierefreiheit: keine Animationen bei reduzierter Bewegung */
+@media (prefers-reduced-motion: reduce) {
+  .hero-cta,
+  .hero-cta::before {
+    animation: none;
+  }
+  .btn-solid::before,
+  .hero-cta::before,
+  .nav-cta::before,
+  .sticky-cta::before {
+    transition: none;
+    left: -130%;
+  }
+}
+
+/* =========================================================
+   CONVERSION-PAKET — 2026-05-17
+   CTA-Gradient · interaktives Quiz · Scroll-Reveal ·
+   Mobile-Hero-Reihenfolge (Baulig-Logik)
+   ========================================================= */
+
+/* ---------- 1 · CTA-Gradient ---------- */
+.btn-solid,
+.hero-cta,
+.nav-cta {
+  background: linear-gradient(135deg, var(--ink-soft) 0%, var(--ink) 100%);
+}
+.btn-solid:hover,
+.hero-cta:hover,
+.nav-cta:hover {
+  background: linear-gradient(135deg, var(--gold-warm) 0%, var(--gold) 100%);
+}
+
+/* ---------- 2 · Quiz — Antwort-Optionen mit Icon ---------- */
+.quiz-option {
+  gap: 12px;
+  transition: border-color .15s, background .15s,
+              transform .15s, box-shadow .2s;
+}
+.opt-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--gold-soft);
+  border-radius: 10px;
+  color: var(--gold);
+  transition: background .18s, color .18s, transform .2s;
+}
+.opt-icon svg {
+  width: 23px;
+  height: 23px;
+}
+.opt-label {
+  flex: 1;
+  min-width: 0;
+}
+.quiz-option:hover .opt-icon {
+  transform: scale(1.08) rotate(-2deg);
+}
+.quiz-option:active {
+  transform: scale(.985);
+}
+.quiz-option.is-selected {
+  box-shadow: 0 6px 18px rgba(184, 137, 95, 0.26);
+}
+.quiz-option.is-selected .opt-icon {
+  background: linear-gradient(135deg, var(--gold-warm), var(--gold));
+  color: #fff;
+}
+.quiz-option.just-picked {
+  animation: opt-pop .32s cubic-bezier(.34, 1.56, .64, 1);
+}
+@keyframes opt-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- 3 · Quiz — lebendige Fortschrittsanzeige ---------- */
+.quiz-progress-wrap {
+  margin-bottom: 24px;
+}
+.quiz-progress {
+  margin-bottom: 9px;
+}
+.quiz-progress-step {
+  height: 5px;
+  border-radius: 3px;
+  transition: background .35s ease, box-shadow .35s ease;
+}
+.quiz-progress-step.is-done {
+  background: var(--gold);
+}
+.quiz-progress-step.is-active {
+  background: linear-gradient(90deg, var(--gold-warm), var(--gold));
+  box-shadow: 0 0 0 2px var(--gold-soft);
+  animation: qp-pulse 1.7s ease-in-out infinite;
+}
+@keyframes qp-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .5; }
+}
+.quiz-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--b-font);
+  font-size: 11.5px;
+  letter-spacing: .03em;
+}
+.quiz-progress-label .qpl-num {
+  font-weight: 600;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+.quiz-progress-label .qpl-pct {
+  color: var(--muted);
+}
+
+/* ---------- 4 · Quiz-Box auffälliger (animierter Lichtstreifen) ---------- */
+.quiz-card-hero::before {
+  background: linear-gradient(90deg,
+              var(--gold-warm) 0%, var(--gold) 30%,
+              #FFF4E4 50%, var(--gold) 70%, var(--gold-warm) 100%);
+  background-size: 250% 100%;
+  animation: card-stripe 5s linear infinite;
+}
+@keyframes card-stripe {
+  0%   { background-position: 0% 0; }
+  100% { background-position: 250% 0; }
+}
+
+/* ---------- 5 · Scroll-Reveal ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity .7s cubic-bezier(.22, .61, .36, 1),
+              transform .7s cubic-bezier(.22, .61, .36, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- 6 · Mobile-Hero-Reihenfolge (Baulig-Logik) ----------
+   chip → H1 → Sub → Quiz-Box → Trust-Zeile → Bullets.
+   Der separate Hero-Button entfällt — die Quiz-Box ist die Aktion. */
+@media (max-width: 979px) {
+  .hero-headline-block { display: contents; }
+  .hero-eyebrow-chip   { order: 1; }
+  .hero h1             { order: 2; }
+  .hero-sub            { order: 3; }
+  .quiz-card-hero      { order: 4; }
+  .hero-trust-line     { order: 5; margin-top: 4px; }
+  .hero-risk-reversal  { order: 6; }
+  .hero-cta,
+  .hero-cta-sub        { display: none; }
+}
+
+/* ---------- 7 · Barrierefreiheit ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .quiz-card-hero::before,
+  .quiz-progress-step.is-active,
+  .quiz-option.just-picked {
+    animation: none;
+  }
+}
