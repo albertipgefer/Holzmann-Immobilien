@@ -28,21 +28,44 @@
     '317'                                                                  // Hameln Grenze (südliches OWL)
   ];
 
+  // ---- Icons (Inline-SVG, currentColor) ------------------
+  // Einheitlicher Stil: 24×24, Strichzeichnung, stroke-width 1.6.
+  function svg(paths) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+           'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
+           paths + '</svg>';
+  }
+  const ICON = {
+    efh:         svg('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5V14h4v5.5"/>'),
+    zfh:         svg('<path d="M3 10.5 12 4l9 6.5"/><path d="M5.5 9.5V19.5h13V9.5"/><path d="M9 13h2.2M12.8 13H15M9 16.3h2.2M12.8 16.3H15"/>'),
+    mfh:         svg('<rect x="5" y="3" width="14" height="18" rx="1.2"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>'),
+    wohnung:     svg('<rect x="4" y="3" width="16" height="18" rx="1.2"/><rect x="7.5" y="6.5" width="4" height="5" rx=".5"/><path d="M13.5 7.5H17M13.5 10.5H17M7.5 15h3.5M13.5 15H17"/>'),
+    grundstueck: svg('<path d="M12 21s6.5-5 6.5-10.5A6.5 6.5 0 0 0 5.5 10.5C5.5 16 12 21 12 21Z"/><circle cx="12" cy="10.3" r="2.4"/>'),
+    sofort:      svg('<path d="M13 2 4.5 13.5H11l-1 8.5L19 10h-6.5L13 2Z"/>'),
+    lt3:         svg('<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
+    '3to6':      svg('<circle cx="12" cy="12.5" r="8.5"/><path d="M12 7.5v5.5l3.5 2.5"/>'),
+    '6to12':     svg('<path d="M6 2.5h12M6 21.5h12M8 2.5v3.8l4 4 4-4V2.5M8 21.5v-3.8l4-4 4 4v3.8"/>'),
+    allein:      svg('<circle cx="12" cy="8" r="3.8"/><path d="M5.5 20.5c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/>'),
+    partner:     svg('<circle cx="8.5" cy="8.5" r="3.2"/><circle cx="16" cy="9.5" r="2.7"/><path d="M3 20.5c0-3.2 2.5-5.6 5.5-5.6s5.5 2.4 5.5 5.6"/><path d="M14.5 20.5c.2-2.6 1.6-4.6 3.9-4.6 1.7 0 3 1.1 3.6 2.8"/>'),
+    erben:       svg('<circle cx="12" cy="7" r="2.9"/><circle cx="5.3" cy="9.2" r="2.3"/><circle cx="18.7" cy="9.2" r="2.3"/><path d="M6.5 19.5c0-3 2.5-5.3 5.5-5.3s5.5 2.3 5.5 5.3"/>'),
+    andere:      svg('<circle cx="10" cy="8" r="3.6"/><path d="M4 20.5c0-3.5 2.7-6 6-6"/><path d="M15.2 14.4a2.1 2.1 0 1 1 3.2 1.8c-.8.5-1.2.9-1.2 2M17.2 21v.02"/>')
+  };
+
   // ---- Quiz-Konfiguration --------------------------------
   // Reihenfolge bewusst gewählt: niedrigste Hürde zuerst (1-Klick-Antworten),
   // PLZ als Tipp-Eingabe später, Lead-Daten ganz am Schluss.
   const QUIZ_STEPS = [
     {
       id: 'property_type',
-      title: 'Welche Immobilie möchten Sie verkaufen?',
+      title: 'Welche Immobilie möchten Sie bewerten lassen?',
       help: 'Wählen Sie die Art der Immobilie.',
       type: 'single',
       options: [
-        { value: 'efh', label: 'Einfamilienhaus' },
-        { value: 'zfh', label: 'Zweifamilienhaus' },
-        { value: 'mfh', label: 'Mehrfamilienhaus' },
-        { value: 'wohnung', label: 'Eigentumswohnung' },
-        { value: 'grundstueck', label: 'Grundstück' }
+        { value: 'efh', label: 'Einfamilienhaus', icon: ICON.efh },
+        { value: 'zfh', label: 'Zweifamilienhaus', icon: ICON.zfh },
+        { value: 'mfh', label: 'Mehrfamilienhaus', icon: ICON.mfh },
+        { value: 'wohnung', label: 'Eigentumswohnung', icon: ICON.wohnung },
+        { value: 'grundstueck', label: 'Grundstück', icon: ICON.grundstueck }
       ]
     },
     {
@@ -51,10 +74,10 @@
       help: 'Eine ehrliche Antwort hilft uns, den passenden Termin und Aufwand für Sie zu wählen.',
       type: 'single',
       options: [
-        { value: 'sofort',  label: 'Sofort / so schnell wie möglich' },
-        { value: 'lt3',     label: 'In den nächsten 3 Monaten' },
-        { value: '3to6',    label: 'In 3 bis 6 Monaten' },
-        { value: '6to12',   label: 'In 6 bis 12 Monaten' }
+        { value: 'sofort',  label: 'Sofort / so schnell wie möglich', icon: ICON.sofort },
+        { value: 'lt3',     label: 'In den nächsten 3 Monaten', icon: ICON.lt3 },
+        { value: '3to6',    label: 'In 3 bis 6 Monaten', icon: ICON['3to6'] },
+        { value: '6to12',   label: 'In 6 bis 12 Monaten', icon: ICON['6to12'] }
       ]
     },
     {
@@ -63,10 +86,10 @@
       help: 'Wir möchten den Termin mit der entscheidungsbefugten Person führen.',
       type: 'single',
       options: [
-        { value: 'allein',  label: 'Ich allein' },
-        { value: 'partner', label: 'Ich gemeinsam mit Partner / Partnerin' },
-        { value: 'erben',   label: 'Erbengemeinschaft' },
-        { value: 'andere',  label: 'Andere Person / Vollmacht ungeklärt' }
+        { value: 'allein',  label: 'Ich allein', icon: ICON.allein },
+        { value: 'partner', label: 'Ich gemeinsam mit Partner / Partnerin', icon: ICON.partner },
+        { value: 'erben',   label: 'Erbengemeinschaft', icon: ICON.erben },
+        { value: 'andere',  label: 'Andere Person / Vollmacht ungeklärt', icon: ICON.andere }
       ]
     },
     {
@@ -77,8 +100,8 @@
     },
     {
       id: 'lead',
-      title: 'Fast geschafft — Ihre Kontaktdaten.',
-      help: 'Ihre Daten werden ausschließlich für diese Anfrage verwendet (DSGVO-konform). 100 % unverbindlich.',
+      title: 'Fast geschafft — wohin dürfen wir Ihre Werteinschätzung schicken?',
+      help: 'Ihre Daten werden ausschließlich für Ihre Werteinschätzung verwendet (DSGVO-konform). 100 % unverbindlich.',
       type: 'lead'
     }
   ];
@@ -123,6 +146,7 @@
   }
 
   function renderProgress() {
+    const outer = create('div', { class: 'quiz-progress-wrap' });
     const wrap = create('div', { class: 'quiz-progress', 'aria-hidden': 'true' });
     QUIZ_STEPS.forEach((_, i) => {
       const cls = i < state.stepIndex ? 'quiz-progress-step is-done'
@@ -130,7 +154,12 @@
                 : 'quiz-progress-step';
       wrap.appendChild(create('span', { class: cls }));
     });
-    return wrap;
+    outer.appendChild(wrap);
+    outer.appendChild(create('p', { class: 'quiz-progress-label' }, [
+      create('span', { class: 'qpl-num' }, 'Schritt ' + (state.stepIndex + 1) + ' von ' + QUIZ_STEPS.length),
+      create('span', { class: 'qpl-pct' }, Math.round((state.stepIndex) / (QUIZ_STEPS.length - 1) * 100) + ' % geschafft')
+    ]));
+    return outer;
   }
 
   function renderSingle(step) {
@@ -144,12 +173,13 @@
       const btn = create('button', {
         type: 'button',
         class: 'quiz-option' + (isSelected ? ' is-selected' : ''),
-        'data-value': opt.value,
-        onclick: () => selectAndNext(step.id, opt.value)
+        'data-value': opt.value
       }, [
-        create('span', { class: 'opt-mark', 'aria-hidden': 'true' }),
-        create('span', null, opt.label)
+        opt.icon ? create('span', { class: 'opt-icon', 'aria-hidden': 'true', html: opt.icon }) : null,
+        create('span', { class: 'opt-label' }, opt.label),
+        create('span', { class: 'opt-mark', 'aria-hidden': 'true' })
       ]);
+      btn.addEventListener('click', () => selectAndNext(step.id, opt.value, btn));
       optsWrap.appendChild(btn);
     });
     wrap.appendChild(optsWrap);
@@ -220,7 +250,7 @@
     const fields = [
       { id: 'name',      label: 'Vor- und Nachname', type: 'text', autocomplete: 'name', pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}.+", placeholder: 'z. B. Maria Musterfrau', errorMsg: 'Bitte geben Sie Vor- und Nachname ein.' },
       { id: 'email',     label: 'E-Mail-Adresse', type: 'email', autocomplete: 'email', placeholder: 'name@beispiel.de', errorMsg: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' },
-      { id: 'phone',     label: 'Telefon (für die Bestätigung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
+      { id: 'phone',     label: 'Telefon (optional — für Rückfragen)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, optional: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
     ];
 
     fields.forEach(f => {
@@ -235,7 +265,7 @@
         ]);
         const tel = create('input', {
           type: 'tel', id: 'q-' + f.id, name: f.id,
-          autocomplete: f.autocomplete, required: 'required',
+          autocomplete: f.autocomplete,
           inputmode: 'numeric',
           placeholder: f.placeholder,
           value: state.answers[f.id] || ''
@@ -279,7 +309,7 @@
     form.appendChild(honey);
 
     const submitBtn = create('button', { type: 'submit', class: 'btn-solid btn-solid-compact' }, [
-      'Jetzt anfragen ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')
+      'Kostenlose Werteinschätzung anfordern ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')
     ]);
 
     const actions = create('div', { class: 'quiz-actions' });
@@ -302,11 +332,11 @@
         const val = inp.value.trim();
         let ok = val.length > 0;
         if (f.type === 'email') ok = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(val);
-        else if (f.tel) ok = /^[0-9 ]{6,16}$/.test(val.replace(/^0+/, ''));
+        else if (f.tel) { const c = val.replace(/^0+/, '').trim(); ok = (f.optional && c.length === 0) || /^[0-9 ]{6,16}$/.test(c); }
         else if (f.id === 'name') ok = /^[-A-Za-zÄÖÜäöüß' .]{2,}\s+[-A-Za-zÄÖÜäöüß' .]{2,}/.test(val);
         else if (f.pattern) ok = new RegExp('^' + f.pattern + '$').test(val);
         if (!ok) { fwrap.classList.add('has-error'); valid = false; }
-        else { fwrap.classList.remove('has-error'); state.answers[f.id] = f.tel ? '+49 ' + val.replace(/^0+/, '').trim() : val; }
+        else { fwrap.classList.remove('has-error'); state.answers[f.id] = f.tel ? (val.trim() ? '+49 ' + val.replace(/^0+/, '').trim() : '') : val; }
       });
       const consent = $('#q-consent', form).checked;
       if (!consent) { valid = false; consentWrap.style.color = '#B33A3A'; }
@@ -322,7 +352,7 @@
       submitBtn.innerHTML = 'Wird gesendet …';
       submitLead().then(() => renderConfirm()).catch(err => {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = 'Jetzt anfragen <span class="arrow" aria-hidden="true">→</span>';
+        submitBtn.innerHTML = 'Kostenlose Werteinschätzung anfordern <span class="arrow" aria-hidden="true">→</span>';
         alert('Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder rufen Sie uns telefonisch unter ' + CONFIG.contactPhoneDisplay + ' an.');
         // eslint-disable-next-line no-console
         console.error('Lead submit failed', err);
@@ -347,13 +377,21 @@
     state.startedFired = true;
     push('quiz_started', { source: 'first_answer', first_step_id: stepId });
   }
-  function selectAndNext(stepId, value) {
+  function selectAndNext(stepId, value, btnEl) {
     state.answers[stepId] = value;
     fireQuizStartedOnce(stepId);
     push('quiz_step_completed', { step_id: stepId, value: value, step_index: state.stepIndex });
+
+    // Auswahl sichtbar bestätigen, dann mit kurzer Verzögerung weiterblättern
+    if (btnEl && btnEl.parentElement) {
+      btnEl.parentElement.querySelectorAll('.quiz-option').forEach(b => {
+        b.classList.remove('is-selected');
+        b.disabled = true;
+      });
+      btnEl.classList.add('is-selected', 'just-picked');
+    }
     if (state.stepIndex < QUIZ_STEPS.length - 1) {
-      state.stepIndex++;
-      render();
+      setTimeout(() => { state.stepIndex++; render(); }, 300);
     }
   }
   function next() { if (state.stepIndex < QUIZ_STEPS.length - 1) { state.stepIndex++; render(); } }
@@ -426,7 +464,7 @@
       _replyto: a.email,
       _template: 'table',
       _captcha: 'false',
-      _cc: 'holzmann.immobilien.herford@gmail.com',
+      _cc: 'holzmann.immobilien.herford@gmail.com,info@kivonti.de',
       _source: 'verkauf.holzmann-immobilien.de',
 
       // Lead-Daten (im Mail-Body lesbar)
@@ -473,20 +511,20 @@
 
     if (t === 'hot') {
       icon = '✓';
-      headline = 'Wählen Sie jetzt Ihren 15-Minuten-Anruf mit Viktor Holzmann.';
-      message = 'Ihre Daten sind bei uns. Wählen Sie einen passenden Slot im Kalender unten — Viktor ruft Sie zur gewählten Zeit auf der angegebenen Nummer an. Bestätigung kommt per E-Mail.';
+      headline = 'Geschafft — Ihre Werteinschätzung ist in Arbeit.';
+      message = 'Ihre Angaben sind bei uns. Am schnellsten geht es persönlich: Wählen Sie unten einen 15-Minuten-Telefontermin — Viktor Holzmann ruft Sie pünktlich an und bespricht Ihre Werteinschätzung direkt mit Ihnen.';
       extra = create('div', { class: 'cal-embed', id: 'cal-embed-holzmann' });
       // Cal.com Embed wird nach DOM-Insert initialisiert (siehe initCalEmbed unten)
     } else if (t === 'warm') {
       icon = '✓';
-      headline = 'Vielen Dank — wir melden uns binnen 24 Stunden.';
-      message = 'Wir haben Ihre Anfrage erhalten. Viktor Holzmann oder ein Mitglied seines Teams ruft Sie persönlich zurück, um einen passenden Slot abzustimmen.';
-      extra = create('p', null, ['Falls es eilig ist, erreichen Sie uns direkt unter ',
-        create('a', { href: 'tel:' + CONFIG.contactPhone }, CONFIG.contactPhoneDisplay), '.']);
+      headline = 'Geschafft — Ihre Werteinschätzung wird vorbereitet.';
+      message = 'Wir haben Ihre Angaben erhalten und bereiten Ihre persönliche Werteinschätzung vor. Möchten Sie sie direkt besprechen? Wählen Sie unten einen passenden 15-Minuten-Telefontermin — andernfalls melden wir uns binnen 24 Stunden bei Ihnen.';
+      extra = create('div', { class: 'cal-embed', id: 'cal-embed-holzmann' });
+      // Cal.com Embed wird nach DOM-Insert initialisiert (siehe initCalEmbed unten)
     } else {
       icon = '✓';
-      headline = 'Vielen Dank für Ihre Anfrage.';
-      message = 'Ihre Immobilie liegt außerhalb unseres Kerngebiets oder die Entscheiderfrage ist noch ungeklärt. Wir melden uns bei Ihnen, sobald wir Ihre Situation eingeordnet haben — telefonisch oder per E-Mail.';
+      headline = 'Vielen Dank — wir haben Ihre Anfrage erhalten.';
+      message = 'Ihre Immobilie liegt außerhalb unseres Kerngebiets (50 km um Herford) oder die Entscheiderfrage ist noch offen. Wir prüfen Ihre Situation und melden uns persönlich bei Ihnen — telefonisch oder per E-Mail.';
       extra = create('p', null, ['Bei dringenden Fragen erreichen Sie uns unter ',
         create('a', { href: 'tel:' + CONFIG.contactPhone }, CONFIG.contactPhoneDisplay), '.']);
     }
@@ -500,8 +538,8 @@
     ]);
     root.appendChild(wrap);
 
-    // Cal.com Embed initialisieren (Hot-Pfad)
-    if (t === 'hot') initCalEmbed();
+    // Cal.com Embed initialisieren (Hot- und Warm-Pfad)
+    if (t === 'hot' || t === 'warm') initCalEmbed();
 
     // Scroll zum Quiz, damit Buchung sichtbar ist
     setTimeout(() => {
