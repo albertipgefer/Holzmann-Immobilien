@@ -9,11 +9,16 @@
   'use strict';
 
   // ---- Konfiguration ---------------
-  // Formsubmit.co — kostenlos, unbegrenzt, kein Account nötig.
-  // Beim ersten Submit kommt eine Bestätigungsmail an die Empfänger-Adresse.
-  // Den darin enthaltenen Link einmal klicken → ab dann kommen alle Leads an.
+  // Lead-Versand mit zwei Wegen für maximale Zuverlässigkeit:
+  //  1. Hauptweg  — formsubmit.co (kostenlos, kein Account).
+  //  2. Backup    — Web3Forms; springt automatisch ein, wenn formsubmit
+  //                 nicht erreichbar ist (Timeout/Serverfehler).
+  // So geht kein Lead verloren, wenn ein Dienst ausfällt.
   const CONFIG = {
     formEndpoint: 'https://formsubmit.co/ajax/info@wohlstandsmarketing.de',
+    web3formsEndpoint: 'https://api.web3forms.com/submit',
+    web3formsKey: 'f25a575b-8c02-451f-a228-aceceb4a4390',
+    submitTimeoutMs: 8000, // hartes Timeout je Versand-Versuch
     calLink: 'holzmann-immobilien/15min',
     contactPhone: '+4952211202810',
     contactPhoneDisplay: '05221 12028-10'
@@ -452,22 +457,39 @@
     };
   }
 
+  // POST mit hartem Timeout. Wirft, wenn der Dienst nicht erreichbar ist,
+  // mit Fehler-Status antwortet oder die API success:false meldet.
+  function postWithTimeout(url, payload, ms) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json().catch(() => ({}));
+      })
+      .then(data => {
+        if (data && (data.success === false || data.success === 'false')) {
+          throw new Error('API-Fehler: ' + (data.message || 'unbekannt'));
+        }
+        return data;
+      })
+      .finally(() => clearTimeout(timer));
+  }
+
   function submitLead() {
     const a = state.answers;
     const leadType = (state.leadType || '').toUpperCase();
     const fullName = (a.name || '').trim();
     const n = splitName(fullName);
+    const subject = 'Holzmann Lead [' + leadType + '] — ' + fullName + ' (PLZ ' + a.plz + ')';
 
-    const payload = {
-      // Formsubmit.co Steuerfelder
-      _subject: 'Holzmann Lead [' + leadType + '] — ' + fullName + ' (PLZ ' + a.plz + ')',
-      _replyto: a.email,
-      _template: 'table',
-      _captcha: 'false',
-      _cc: 'holzmann.immobilien.herford@gmail.com,info@kivonti.de',
-      _source: 'verkauf.holzmann-immobilien.de',
-
-      // Lead-Daten (im Mail-Body lesbar)
+    // Lead-Daten (in beiden Versand-Wegen im Mail-Body lesbar)
+    const leadFields = {
       'Lead-Typ': leadType,
       'Name': fullName,
       'Vorname': n.first,
@@ -482,6 +504,26 @@
       'Zeitstempel': new Date().toISOString()
     };
 
+    // Hauptweg: formsubmit.co (eigene Steuerfelder mit _-Präfix)
+    const formsubmitPayload = Object.assign({
+      _subject: subject,
+      _replyto: a.email,
+      _template: 'table',
+      _captcha: 'false',
+      _cc: 'holzmann.immobilien.herford@gmail.com,info@kivonti.de',
+      _source: 'verkauf.holzmann-immobilien.de'
+    }, leadFields);
+
+    // Backup: Web3Forms (Empfänger = Key-Inhaber info@wohlstandsmarketing.de,
+    // weitere Adressen via ccemail, semikolon-getrennt)
+    const web3formsPayload = Object.assign({
+      access_key: CONFIG.web3formsKey,
+      subject: subject,
+      from_name: 'Holzmann Landingpage',
+      replyto: a.email,
+      ccemail: 'holzmann.immobilien.herford@gmail.com; info@kivonti.de'
+    }, leadFields);
+
     // Enhanced Conversions: bereinigte User-Daten für Google Ads bereitstellen
     const userData = buildEnhancedConversionData(a);
     try { localStorage.setItem('holzmann-ec-userdata', JSON.stringify({ data: userData, ts: Date.now() })); } catch(e) {}
@@ -493,14 +535,13 @@
       enhanced_conversion_data: userData
     });
 
-    return fetch(CONFIG.formEndpoint, {
-      method: 'POST',
-      headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    }).then(res => {
-      if (!res.ok) throw new Error('Form endpoint responded ' + res.status);
-      return res.json().catch(() => ({}));
-    });
+    // Erst formsubmit versuchen; bei Ausfall automatisch Web3Forms-Backup.
+    return postWithTimeout(CONFIG.formEndpoint, formsubmitPayload, CONFIG.submitTimeoutMs)
+      .catch(err => {
+        // eslint-disable-next-line no-console
+        console.warn('formsubmit.co nicht erreichbar — nutze Web3Forms-Backup.', err);
+        return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs);
+      });
   }
 
   // ---- Confirmation --------------------------------------
