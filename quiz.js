@@ -490,6 +490,7 @@
 
     // Lead-Daten (in beiden Versand-Wegen im Mail-Body lesbar)
     const leadFields = {
+      'Weiterleiten an': 'holzmann.immobilien.herford@gmail.com, info@kivonti.de',
       'Lead-Typ': leadType,
       'Name': fullName,
       'Vorname': n.first,
@@ -504,7 +505,8 @@
       'Zeitstempel': new Date().toISOString()
     };
 
-    // Hauptweg: formsubmit.co (eigene Steuerfelder mit _-Präfix)
+    // Fallback: formsubmit.co (eigene Steuerfelder mit _-Präfix).
+    // Liefert per _cc an alle drei Adressen — greift nur, falls Web3Forms ausfällt.
     const formsubmitPayload = Object.assign({
       _subject: subject,
       _replyto: a.email,
@@ -514,14 +516,14 @@
       _source: 'verkauf.holzmann-immobilien.de'
     }, leadFields);
 
-    // Backup: Web3Forms (Empfänger = Key-Inhaber info@wohlstandsmarketing.de,
-    // weitere Adressen via ccemail, semikolon-getrennt)
+    // Hauptweg: Web3Forms. Liefert an den Key-Inhaber info@wohlstandsmarketing.de.
+    // Mehrfach-Empfänger (ccemail) sind bei Web3Forms kostenpflichtig — daher
+    // bewusst weggelassen; die Weiterleitungsadressen stehen im Mail-Text.
     const web3formsPayload = Object.assign({
       access_key: CONFIG.web3formsKey,
       subject: subject,
       from_name: 'Holzmann Landingpage',
-      replyto: a.email,
-      ccemail: 'holzmann.immobilien.herford@gmail.com; info@kivonti.de'
+      replyto: a.email
     }, leadFields);
 
     // Enhanced Conversions: bereinigte User-Daten für Google Ads bereitstellen
@@ -535,12 +537,13 @@
       enhanced_conversion_data: userData
     });
 
-    // Erst formsubmit versuchen; bei Ausfall automatisch Web3Forms-Backup.
-    return postWithTimeout(CONFIG.formEndpoint, formsubmitPayload, CONFIG.submitTimeoutMs)
+    // Web3Forms ist der zuverlässige Hauptweg. formsubmit.co dient nur
+    // als Fallback, falls Web3Forms einmal nicht erreichbar ist.
+    return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs)
       .catch(err => {
         // eslint-disable-next-line no-console
-        console.warn('formsubmit.co nicht erreichbar — nutze Web3Forms-Backup.', err);
-        return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs);
+        console.warn('Web3Forms nicht erreichbar — nutze formsubmit.co als Fallback.', err);
+        return postWithTimeout(CONFIG.formEndpoint, formsubmitPayload, CONFIG.submitTimeoutMs);
       });
   }
 

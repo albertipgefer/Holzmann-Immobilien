@@ -348,7 +348,8 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
   box-shadow: 0 4px 14px rgba(7,7,26,0.04);
 }
 @media (min-width: 980px) {
-  .hero-eyebrow-chip { font-size: 11px; padding: 7px 14px; gap: 10px; margin-bottom: 28px; }
+  /* Desktop: Badge linksbündig, exakt über der Headline beginnend. */
+  .hero-eyebrow-chip { font-size: 11px; padding: 7px 14px; gap: 10px; margin-bottom: 28px; align-self: flex-start; }
 }
 .hero-eyebrow-chip .dot {
   width: 5px; height: 5px; border-radius: 50%;
