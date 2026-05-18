@@ -329,6 +329,11 @@ h1 em, h2 em, h3 em, .italic { color: var(--gold); font-style: italic; font-weig
 
 .hero-eyebrow-chip {
   display: inline-flex; align-items: center; gap: 8px;
+  /* Badge auf jedem Gerät zentriert:
+     align-self greift im Flex-Kontext (Desktop-Headline-Spalte),
+     justify-self im Grid-Kontext (mobil/iPad, headline-block: display:contents). */
+  align-self: center;
+  justify-self: center;
   background: var(--white);
   border: 1px solid var(--line);
   padding: 5px 12px;

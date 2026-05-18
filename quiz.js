@@ -18,7 +18,7 @@
     formEndpoint: 'https://formsubmit.co/ajax/info@wohlstandsmarketing.de',
     web3formsEndpoint: 'https://api.web3forms.com/submit',
     web3formsKey: 'f25a575b-8c02-451f-a228-aceceb4a4390',
-    submitTimeoutMs: 8000, // hartes Timeout je Versand-Versuch
+    submitTimeoutMs: 5000, // hartes Timeout je Versand-Versuch
     calLink: 'holzmann-immobilien/15min',
     contactPhone: '+4952211202810',
     contactPhoneDisplay: '05221 12028-10'
