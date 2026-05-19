@@ -252,7 +252,7 @@
     const fields = [
       { id: 'name',      label: 'Vor- und Nachname', type: 'text', autocomplete: 'name', pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}.+", placeholder: 'z. B. Maria Musterfrau', errorMsg: 'Bitte geben Sie Vor- und Nachname ein.' },
       { id: 'email',     label: 'E-Mail-Adresse', type: 'email', autocomplete: 'email', placeholder: 'name@beispiel.de', errorMsg: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' },
-      { id: 'phone',     label: 'Telefon (optional — für Rückfragen)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, optional: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
+      { id: 'phone',     label: 'Telefon (für Ihre persönliche Werteinschätzung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
     ];
 
     fields.forEach(f => {
