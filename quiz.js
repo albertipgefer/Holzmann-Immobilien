@@ -9,16 +9,13 @@
   'use strict';
 
   // ---- Konfiguration ---------------
-  // Lead-Versand mit zwei Wegen für maximale Zuverlässigkeit:
-  //  1. Hauptweg  — formsubmit.co (kostenlos, kein Account).
-  //  2. Backup    — Web3Forms; springt automatisch ein, wenn formsubmit
-  //                 nicht erreichbar ist (Timeout/Serverfehler).
-  // So geht kein Lead verloren, wenn ein Dienst ausfällt.
+  // Lead-Versand über Web3Forms. Schlägt ein Versand fehl (kurzer Aussetzer
+  // oder Timeout), wird er einmal automatisch wiederholt (siehe submitLead) —
+  // das fängt Verzögerungen ab, ohne Abhängigkeit von einem zweiten Dienst.
   const CONFIG = {
-    formEndpoint: 'https://formsubmit.co/ajax/info@wohlstandsmarketing.de',
     web3formsEndpoint: 'https://api.web3forms.com/submit',
     web3formsKey: 'f25a575b-8c02-451f-a228-aceceb4a4390',
-    submitTimeoutMs: 5000, // hartes Timeout je Versand-Versuch
+    submitTimeoutMs: 12000, // hartes Timeout je Versand-Versuch
     calLink: 'holzmann-immobilien/15min',
     contactPhone: '+4952211202810',
     contactPhoneDisplay: '05221 12028-10'
@@ -505,20 +502,9 @@
       'Zeitstempel': new Date().toISOString()
     };
 
-    // Fallback: formsubmit.co (eigene Steuerfelder mit _-Präfix).
-    // Liefert per _cc an alle drei Adressen — greift nur, falls Web3Forms ausfällt.
-    const formsubmitPayload = Object.assign({
-      _subject: subject,
-      _replyto: a.email,
-      _template: 'table',
-      _captcha: 'false',
-      _cc: 'holzmann.immobilien.herford@gmail.com,info@kivonti.de',
-      _source: 'verkauf.holzmann-immobilien.de'
-    }, leadFields);
-
-    // Hauptweg: Web3Forms. Liefert an den Key-Inhaber info@wohlstandsmarketing.de.
-    // Mehrfach-Empfänger (ccemail) sind bei Web3Forms kostenpflichtig — daher
-    // bewusst weggelassen; die Weiterleitungsadressen stehen im Mail-Text.
+    // Versand über Web3Forms an den Key-Inhaber info@wohlstandsmarketing.de.
+    // Von dort verteilt eine Gmail-Filterregel die Leads automatisch an
+    // Holzmann und Kivonti weiter (Filter: Betreff enthält "Holzmann Lead").
     const web3formsPayload = Object.assign({
       access_key: CONFIG.web3formsKey,
       subject: subject,
@@ -537,13 +523,13 @@
       enhanced_conversion_data: userData
     });
 
-    // Web3Forms ist der zuverlässige Hauptweg. formsubmit.co dient nur
-    // als Fallback, falls Web3Forms einmal nicht erreichbar ist.
+    // Versand über Web3Forms. Schlägt der erste Versuch fehl (kurzer
+    // Aussetzer/Timeout), wird genau einmal automatisch wiederholt.
     return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs)
       .catch(err => {
         // eslint-disable-next-line no-console
-        console.warn('Web3Forms nicht erreichbar — nutze formsubmit.co als Fallback.', err);
-        return postWithTimeout(CONFIG.formEndpoint, formsubmitPayload, CONFIG.submitTimeoutMs);
+        console.warn('Web3Forms-Versand fehlgeschlagen — starte einen Wiederholungsversuch.', err);
+        return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs);
       });
   }
 
