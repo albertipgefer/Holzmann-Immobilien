@@ -1,104 +1,126 @@
 /* =========================================================
-   Holzmann Immobilien — Verkaufsstrategie Quiz
-   Vanilla JS, kein Framework. State-Machine, 5 Fragen +
-   Lead-Daten, Routing (Hot/Warm/Cold), Formspree-Submit,
-   TidyCal-Embed im Hot-Pfad.
+   Holzmann Immobilien — Werteinschätzungs-Quiz
+   Vanilla JS, kein Framework. State-Machine: 8 Fragen +
+   Lead-Daten, Routing (Hot/Warm/Cold), Web3Forms-Submit,
+   Redirect auf /danke-seite.html (Cal.com-Embed dort).
    ========================================================= */
 
 (function () {
   'use strict';
 
-  // ---- Konfiguration ---------------
-  // Lead-Versand über Web3Forms. Schlägt ein Versand fehl (kurzer Aussetzer
-  // oder Timeout), wird er einmal automatisch wiederholt (siehe submitLead) —
-  // das fängt Verzögerungen ab, ohne Abhängigkeit von einem zweiten Dienst.
+  // ---- Konfiguration -------------------------------------
   const CONFIG = {
     web3formsEndpoint: 'https://api.web3forms.com/submit',
     web3formsKey: 'f25a575b-8c02-451f-a228-aceceb4a4390',
-    submitTimeoutMs: 12000, // hartes Timeout je Versand-Versuch
-    calLink: 'holzmann-immobilien/15min',
+    submitTimeoutMs: 12000,
+    thankYouPath: '/danke-seite.html',
     contactPhone: '+4952211202810',
     contactPhoneDisplay: '05221 12028-10'
   };
 
   // ---- PLZ-Whitelist (~50 km um Herford 32049) -----------
-  // Pragmatischer Bereich: OWL + Bielefeld + nahes Münster-/Mindener Land.
-  // Erweiterbar – jeder Eintrag ist ein 3-stelliges PLZ-Präfix.
   const PLZ_PREFIX_WHITELIST = [
-    '320', '321', '322', '323', '324', '325', '326', '327', '328', '329', // Herford, Bad Salzuflen, Bad Oeynhausen, Lemgo, Detmold, Minden, Lübbecke, Bünde, Löhne, Vlotho, Porta Westfalica
-    '330', '331', '332', '333', '334', '335',                              // Bielefeld, Gütersloh, Werther, Halle Westf, Steinhagen, Borgholzhausen
-    '317'                                                                  // Hameln Grenze (südliches OWL)
+    '320', '321', '322', '323', '324', '325', '326', '327', '328', '329',
+    '330', '331', '332', '333', '334', '335',
+    '317'
   ];
 
-  // ---- Icons (Inline-SVG, currentColor) ------------------
-  // Einheitlicher Stil: 24×24, Strichzeichnung, stroke-width 1.6.
+  // ---- Icons (Inline-SVG) --------------------------------
   function svg(paths) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
            'stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' +
            paths + '</svg>';
   }
   const ICON = {
-    efh:         svg('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5V14h4v5.5"/>'),
-    zfh:         svg('<path d="M3 10.5 12 4l9 6.5"/><path d="M5.5 9.5V19.5h13V9.5"/><path d="M9 13h2.2M12.8 13H15M9 16.3h2.2M12.8 16.3H15"/>'),
-    mfh:         svg('<rect x="5" y="3" width="14" height="18" rx="1.2"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>'),
-    wohnung:     svg('<rect x="4" y="3" width="16" height="18" rx="1.2"/><rect x="7.5" y="6.5" width="4" height="5" rx=".5"/><path d="M13.5 7.5H17M13.5 10.5H17M7.5 15h3.5M13.5 15H17"/>'),
-    grundstueck: svg('<path d="M12 21s6.5-5 6.5-10.5A6.5 6.5 0 0 0 5.5 10.5C5.5 16 12 21 12 21Z"/><circle cx="12" cy="10.3" r="2.4"/>'),
-    sofort:      svg('<path d="M13 2 4.5 13.5H11l-1 8.5L19 10h-6.5L13 2Z"/>'),
-    lt3:         svg('<rect x="3.5" y="5" width="17" height="16" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/>'),
-    '3to6':      svg('<circle cx="12" cy="12.5" r="8.5"/><path d="M12 7.5v5.5l3.5 2.5"/>'),
-    '6to12':     svg('<path d="M6 2.5h12M6 21.5h12M8 2.5v3.8l4 4 4-4V2.5M8 21.5v-3.8l4-4 4 4v3.8"/>'),
-    allein:      svg('<circle cx="12" cy="8" r="3.8"/><path d="M5.5 20.5c0-3.6 2.9-6.2 6.5-6.2s6.5 2.6 6.5 6.2"/>'),
-    partner:     svg('<circle cx="8.5" cy="8.5" r="3.2"/><circle cx="16" cy="9.5" r="2.7"/><path d="M3 20.5c0-3.2 2.5-5.6 5.5-5.6s5.5 2.4 5.5 5.6"/><path d="M14.5 20.5c.2-2.6 1.6-4.6 3.9-4.6 1.7 0 3 1.1 3.6 2.8"/>'),
-    erben:       svg('<circle cx="12" cy="7" r="2.9"/><circle cx="5.3" cy="9.2" r="2.3"/><circle cx="18.7" cy="9.2" r="2.3"/><path d="M6.5 19.5c0-3 2.5-5.3 5.5-5.3s5.5 2.3 5.5 5.3"/>'),
-    andere:      svg('<circle cx="10" cy="8" r="3.6"/><path d="M4 20.5c0-3.5 2.7-6 6-6"/><path d="M15.2 14.4a2.1 2.1 0 1 1 3.2 1.8c-.8.5-1.2.9-1.2 2M17.2 21v.02"/>')
+    familienhaus:   svg('<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M10 19.5V14h4v5.5"/>'),
+    mfh:            svg('<rect x="5" y="3" width="14" height="18" rx="1.2"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>'),
+    wohnung:        svg('<rect x="4" y="3" width="16" height="18" rx="1.2"/><rect x="7.5" y="6.5" width="4" height="5" rx=".5"/><path d="M13.5 7.5H17M13.5 10.5H17M7.5 15h3.5M13.5 15H17"/>'),
+    grundstueck:    svg('<path d="M12 21s6.5-5 6.5-10.5A6.5 6.5 0 0 0 5.5 10.5C5.5 16 12 21 12 21Z"/><circle cx="12" cy="10.3" r="2.4"/>'),
+    baugrundstueck: svg('<path d="M3 20.5h18"/><path d="M5 20.5V13l7-5 7 5v7.5"/><path d="M9 20.5v-5h6v5"/><path d="M13 9.5l2-2 2 2"/>')
   };
 
   // ---- Quiz-Konfiguration --------------------------------
-  // Reihenfolge bewusst gewählt: niedrigste Hürde zuerst (1-Klick-Antworten),
-  // PLZ als Tipp-Eingabe später, Lead-Daten ganz am Schluss.
+  // skipIf: Function(answers) → bool. true = Step überspringen.
+  const isLand = a => a.property_type === 'grundstueck' || a.property_type === 'baugrundstueck';
+
   const QUIZ_STEPS = [
     {
       id: 'property_type',
-      title: 'Welche Immobilie möchten Sie bewerten lassen?',
-      help: 'Wählen Sie die Art der Immobilie.',
+      title: 'Welchen Immobilientyp möchten Sie bewerten?',
+      help: 'Wählen Sie die Art Ihrer Immobilie.',
       type: 'single',
       options: [
-        { value: 'efh', label: 'Einfamilienhaus', icon: ICON.efh },
-        { value: 'zfh', label: 'Zweifamilienhaus', icon: ICON.zfh },
-        { value: 'mfh', label: 'Mehrfamilienhaus', icon: ICON.mfh },
-        { value: 'wohnung', label: 'Eigentumswohnung', icon: ICON.wohnung },
-        { value: 'grundstueck', label: 'Grundstück', icon: ICON.grundstueck }
+        { value: 'familienhaus',   label: 'Familienhaus',     icon: ICON.familienhaus },
+        { value: 'mfh',            label: 'Mehrfamilienhaus', icon: ICON.mfh },
+        { value: 'wohnung',        label: 'Eigentumswohnung', icon: ICON.wohnung },
+        { value: 'grundstueck',    label: 'Grundstück',       icon: ICON.grundstueck },
+        { value: 'baugrundstueck', label: 'Baugrundstück',    icon: ICON.baugrundstueck }
       ]
     },
     {
-      id: 'timeline',
-      title: 'Wann möchten Sie verkaufen?',
-      help: 'Eine ehrliche Antwort hilft uns, den passenden Termin und Aufwand für Sie zu wählen.',
-      type: 'single',
+      id: 'plot_area',
+      title: 'Wie groß ist die Grundstücksfläche?',
+      help: 'Gesamtfläche in Quadratmetern (m²).',
+      type: 'number', unit: 'm²', min: 1, max: 100000, placeholder: 'z. B. 600'
+    },
+    {
+      id: 'living_area',
+      title: 'Wie groß ist die Wohnfläche?',
+      help: 'Beheizte Wohnfläche in Quadratmetern (m²).',
+      type: 'number', unit: 'm²', min: 1, max: 10000, placeholder: 'z. B. 140',
+      skipIf: isLand
+    },
+    {
+      id: 'build_year',
+      title: 'Wann wurde die Immobilie gebaut?',
+      help: 'Baujahr — bei kernsaniertem Bestand das ursprüngliche Jahr.',
+      type: 'number', unit: 'Jahr', min: 1800, max: new Date().getFullYear(), placeholder: 'z. B. 1985',
+      skipIf: isLand
+    },
+    {
+      id: 'rooms',
+      title: 'Wie viele Zimmer gibt es?',
+      help: 'Anzahl der Wohnräume (ohne Küche und Bad).',
+      type: 'dropdown',
       options: [
-        { value: 'sofort',  label: 'Sofort / so schnell wie möglich', icon: ICON.sofort },
-        { value: 'lt3',     label: 'In den nächsten 3 Monaten', icon: ICON.lt3 },
-        { value: '3to6',    label: 'In 3 bis 6 Monaten', icon: ICON['3to6'] },
-        { value: '6to12',   label: 'In 6 bis 12 Monaten', icon: ICON['6to12'] }
+        { value: '1',     label: '1 Zimmer' },
+        { value: '2',     label: '2 Zimmer' },
+        { value: '3',     label: '3 Zimmer' },
+        { value: '4',     label: '4 Zimmer' },
+        { value: '5plus', label: 'Mehr als 5 Zimmer' }
+      ],
+      skipIf: isLand
+    },
+    {
+      id: 'rented',
+      title: 'Wird die Immobilie aktuell vermietet?',
+      help: 'Bei vermieteten Objekten gelten besondere Fristen — relevant für die Einschätzung.',
+      type: 'dropdown',
+      options: [
+        { value: 'nein', label: 'Nein' },
+        { value: 'ja',   label: 'Ja' }
+      ],
+      skipIf: isLand
+    },
+    {
+      id: 'reason',
+      title: 'Was ist der Grund für die Bewertung?',
+      help: 'Hilft uns, die Werteinschätzung passend für Ihre Situation aufzubereiten.',
+      type: 'dropdown',
+      options: [
+        { value: 'altersgruende', label: 'Altersgründe' },
+        { value: 'gesundheit',    label: 'Gesundheitsgründe' },
+        { value: 'erbschaft',     label: 'Erbschaft' },
+        { value: 'finanziell',    label: 'Finanzielle Gründe' },
+        { value: 'familiaer',     label: 'Familiäre Veränderungen' },
+        { value: 'beruflich',     label: 'Berufliche Veränderungen' }
       ]
     },
     {
-      id: 'decider',
-      title: 'Wer entscheidet über den Verkauf?',
-      help: 'Wir möchten den Termin mit der entscheidungsbefugten Person führen.',
-      type: 'single',
-      options: [
-        { value: 'allein',  label: 'Ich allein', icon: ICON.allein },
-        { value: 'partner', label: 'Ich gemeinsam mit Partner / Partnerin', icon: ICON.partner },
-        { value: 'erben',   label: 'Erbengemeinschaft', icon: ICON.erben },
-        { value: 'andere',  label: 'Andere Person / Vollmacht ungeklärt', icon: ICON.andere }
-      ]
-    },
-    {
-      id: 'plz',
-      title: 'Wo liegt die Immobilie?',
-      help: 'Wir prüfen, ob Ihre Immobilie in unserem Kerngebiet (Radius 50 km um Herford) liegt.',
-      type: 'plz'
+      id: 'address',
+      title: 'Wo befindet sich die Immobilie?',
+      help: 'Adresse der zu bewertenden Immobilie. Wir nutzen die Daten ausschließlich für Ihre Werteinschätzung.',
+      type: 'address'
     },
     {
       id: 'lead',
@@ -136,30 +158,58 @@
   const root = $('#quiz-app');
   if (!root) return;
 
+  // ---- Step-Navigation mit Skip-Logik --------------------
+  function isStepVisible(step) {
+    return !step.skipIf || !step.skipIf(state.answers);
+  }
+  function visibleSteps() {
+    return QUIZ_STEPS.filter(isStepVisible);
+  }
+  function currentVisibleIndex() {
+    const visible = visibleSteps();
+    return Math.max(0, visible.indexOf(QUIZ_STEPS[state.stepIndex]));
+  }
+  function nextStepIndex() {
+    for (let i = state.stepIndex + 1; i < QUIZ_STEPS.length; i++) {
+      if (isStepVisible(QUIZ_STEPS[i])) return i;
+    }
+    return state.stepIndex;
+  }
+  function prevStepIndex() {
+    for (let i = state.stepIndex - 1; i >= 0; i--) {
+      if (isStepVisible(QUIZ_STEPS[i])) return i;
+    }
+    return state.stepIndex;
+  }
+
   // ---- Render --------------------------------------------
   function render() {
     root.innerHTML = '';
     root.appendChild(renderProgress());
 
     const step = QUIZ_STEPS[state.stepIndex];
-    if (step.type === 'single') root.appendChild(renderSingle(step));
-    else if (step.type === 'plz') root.appendChild(renderPLZ(step));
-    else if (step.type === 'lead') root.appendChild(renderLead(step));
+    if      (step.type === 'single')   root.appendChild(renderSingle(step));
+    else if (step.type === 'number')   root.appendChild(renderNumber(step));
+    else if (step.type === 'dropdown') root.appendChild(renderDropdown(step));
+    else if (step.type === 'address')  root.appendChild(renderAddress(step));
+    else if (step.type === 'lead')     root.appendChild(renderLead(step));
   }
 
   function renderProgress() {
+    const visible = visibleSteps();
+    const visIdx  = currentVisibleIndex();
     const outer = create('div', { class: 'quiz-progress-wrap' });
     const wrap = create('div', { class: 'quiz-progress', 'aria-hidden': 'true' });
-    QUIZ_STEPS.forEach((_, i) => {
-      const cls = i < state.stepIndex ? 'quiz-progress-step is-done'
-                : i === state.stepIndex ? 'quiz-progress-step is-active'
+    visible.forEach((_, i) => {
+      const cls = i < visIdx ? 'quiz-progress-step is-done'
+                : i === visIdx ? 'quiz-progress-step is-active'
                 : 'quiz-progress-step';
       wrap.appendChild(create('span', { class: cls }));
     });
     outer.appendChild(wrap);
     outer.appendChild(create('p', { class: 'quiz-progress-label' }, [
-      create('span', { class: 'qpl-num' }, 'Schritt ' + (state.stepIndex + 1) + ' von ' + QUIZ_STEPS.length),
-      create('span', { class: 'qpl-pct' }, Math.round((state.stepIndex) / (QUIZ_STEPS.length - 1) * 100) + ' % geschafft')
+      create('span', { class: 'qpl-num' }, 'Schritt ' + (visIdx + 1) + ' von ' + visible.length),
+      create('span', { class: 'qpl-pct' }, Math.round((visIdx) / Math.max(1, visible.length - 1) * 100) + ' % geschafft')
     ]));
     return outer;
   }
@@ -189,45 +239,47 @@
     return wrap;
   }
 
-  function renderPLZ(step) {
+  function renderNumber(step) {
     const wrap = create('div', { class: 'quiz-step' });
     wrap.appendChild(create('h3', null, step.title));
     if (step.help) wrap.appendChild(create('p', { class: 'quiz-help' }, step.help));
 
-    const field = create('div', { class: 'quiz-field' });
-    field.appendChild(create('label', { for: 'q-plz' }, 'Postleitzahl der Immobilie'));
+    const field = create('div', { class: 'quiz-field quiz-field-number' });
+    field.appendChild(create('label', { for: 'q-' + step.id }, step.title));
+
+    const inputWrap = create('div', { class: 'number-wrap' });
     const input = create('input', {
-      type: 'tel', id: 'q-plz', name: 'plz',
-      inputmode: 'numeric', pattern: '[0-9]{5}', maxlength: '5', minlength: '5',
-      autocomplete: 'postal-code',
-      placeholder: 'z. B. 32049',
-      value: state.answers.plz || ''
+      type: 'tel', id: 'q-' + step.id, name: step.id,
+      inputmode: 'numeric', pattern: '[0-9]*',
+      placeholder: step.placeholder || '',
+      value: state.answers[step.id] || ''
     });
     input.addEventListener('keypress', e => {
       if (!/[0-9]/.test(e.key) && e.key !== 'Enter') e.preventDefault();
     });
     input.addEventListener('input', () => {
-      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
+      input.value = input.value.replace(/[^0-9]/g, '').slice(0, 7);
       field.classList.remove('has-error');
     });
-    input.addEventListener('paste', e => {
-      e.preventDefault();
-      const txt = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 5);
-      input.value = txt;
-    });
-    field.appendChild(input);
-    field.appendChild(create('p', { class: 'field-error' }, 'Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.'));
+    inputWrap.appendChild(input);
+    if (step.unit) inputWrap.appendChild(create('span', { class: 'number-unit' }, step.unit));
+    field.appendChild(inputWrap);
+
+    const errMsg = 'Bitte geben Sie einen Wert zwischen ' + step.min + ' und ' + step.max + ' ein.';
+    field.appendChild(create('p', { class: 'field-error' }, errMsg));
     wrap.appendChild(field);
 
-    const next = create('button', {
+    const nextBtn = create('button', {
       type: 'button', class: 'btn-solid',
       onclick: () => {
-        const val = input.value.trim();
-        if (!/^[0-9]{5}$/.test(val)) { field.classList.add('has-error'); input.focus(); return; }
-        state.answers.plz = val;
-        fireQuizStartedOnce('plz');
-        state.stepIndex++;
-        push('quiz_step_completed', { step_id: 'plz', step_index: state.stepIndex });
+        const val = parseInt(input.value, 10);
+        if (!val || isNaN(val) || val < step.min || val > step.max) {
+          field.classList.add('has-error'); input.focus(); return;
+        }
+        state.answers[step.id] = String(val);
+        fireQuizStartedOnce(step.id);
+        push('quiz_step_completed', { step_id: step.id, value: val, step_index: state.stepIndex });
+        state.stepIndex = nextStepIndex();
         render();
       }
     }, ['Weiter ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')]);
@@ -235,7 +287,124 @@
     const actions = create('div', { class: 'quiz-actions' });
     if (state.stepIndex > 0) actions.appendChild(create('button', { type: 'button', class: 'btn-ghost', onclick: back }, '← Zurück'));
     else actions.appendChild(create('span'));
-    actions.appendChild(next);
+    actions.appendChild(nextBtn);
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
+  function renderDropdown(step) {
+    const wrap = create('div', { class: 'quiz-step' });
+    wrap.appendChild(create('h3', null, step.title));
+    if (step.help) wrap.appendChild(create('p', { class: 'quiz-help' }, step.help));
+
+    const field = create('div', { class: 'quiz-field quiz-field-select' });
+    field.appendChild(create('label', { for: 'q-' + step.id }, step.title));
+
+    const select = create('select', { id: 'q-' + step.id, name: step.id, class: 'quiz-select' });
+    select.appendChild(create('option', { value: '', disabled: 'disabled', selected: 'selected' }, '— bitte wählen —'));
+    step.options.forEach(opt => {
+      const o = create('option', { value: opt.value }, opt.label);
+      if (state.answers[step.id] === opt.value) o.setAttribute('selected', 'selected');
+      select.appendChild(o);
+    });
+    select.addEventListener('change', () => field.classList.remove('has-error'));
+    field.appendChild(select);
+    field.appendChild(create('p', { class: 'field-error' }, 'Bitte wählen Sie eine Option aus.'));
+    wrap.appendChild(field);
+
+    const nextBtn = create('button', {
+      type: 'button', class: 'btn-solid',
+      onclick: () => {
+        const val = select.value;
+        if (!val) { field.classList.add('has-error'); select.focus(); return; }
+        state.answers[step.id] = val;
+        fireQuizStartedOnce(step.id);
+        push('quiz_step_completed', { step_id: step.id, value: val, step_index: state.stepIndex });
+        state.stepIndex = nextStepIndex();
+        render();
+      }
+    }, ['Weiter ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')]);
+
+    const actions = create('div', { class: 'quiz-actions' });
+    if (state.stepIndex > 0) actions.appendChild(create('button', { type: 'button', class: 'btn-ghost', onclick: back }, '← Zurück'));
+    else actions.appendChild(create('span'));
+    actions.appendChild(nextBtn);
+    wrap.appendChild(actions);
+    return wrap;
+  }
+
+  function renderAddress(step) {
+    const wrap = create('div', { class: 'quiz-step' });
+    wrap.appendChild(create('h3', null, step.title));
+    if (step.help) wrap.appendChild(create('p', { class: 'quiz-help' }, step.help));
+
+    const a = state.answers;
+    const fields = [
+      { id: 'street',     label: 'Straße',     type: 'text', autocomplete: 'address-line1',  placeholder: 'z. B. Bahnhofstraße',  gridClass: 'addr-street',  errorMsg: 'Bitte geben Sie die Straße ein.' },
+      { id: 'house_no',   label: 'Hausnummer', type: 'text', autocomplete: 'address-line2',  placeholder: 'z. B. 12a',            gridClass: 'addr-houseno', errorMsg: 'Bitte geben Sie die Hausnummer ein.' },
+      { id: 'plz',        label: 'PLZ',        type: 'tel',  autocomplete: 'postal-code',    placeholder: 'z. B. 32049',          gridClass: 'addr-plz',     errorMsg: 'Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.', plz: true },
+      { id: 'city',       label: 'Ort',        type: 'text', autocomplete: 'address-level2', placeholder: 'z. B. Herford',        gridClass: 'addr-city',    errorMsg: 'Bitte geben Sie den Ort ein.' }
+    ];
+
+    const grid = create('div', { class: 'address-grid' });
+    const inputs = {};
+    fields.forEach(f => {
+      const fwrap = create('div', { class: 'quiz-field ' + f.gridClass });
+      fwrap.appendChild(create('label', { for: 'q-' + f.id }, f.label));
+      const input = create('input', {
+        type: f.type, id: 'q-' + f.id, name: f.id,
+        autocomplete: f.autocomplete,
+        placeholder: f.placeholder,
+        value: a[f.id] || ''
+      });
+      if (f.plz) {
+        input.setAttribute('inputmode', 'numeric');
+        input.setAttribute('pattern', '[0-9]{5}');
+        input.setAttribute('maxlength', '5');
+        input.addEventListener('keypress', e => {
+          if (!/[0-9]/.test(e.key) && e.key !== 'Enter') e.preventDefault();
+        });
+        input.addEventListener('input', () => {
+          input.value = input.value.replace(/[^0-9]/g, '').slice(0, 5);
+          fwrap.classList.remove('has-error');
+        });
+      } else {
+        input.addEventListener('input', () => fwrap.classList.remove('has-error'));
+      }
+      fwrap.appendChild(input);
+      fwrap.appendChild(create('p', { class: 'field-error' }, f.errorMsg));
+      grid.appendChild(fwrap);
+      inputs[f.id] = { input, fwrap, def: f };
+    });
+    wrap.appendChild(grid);
+
+    const nextBtn = create('button', {
+      type: 'button', class: 'btn-solid',
+      onclick: () => {
+        let valid = true;
+        fields.forEach(f => {
+          const { input, fwrap } = inputs[f.id];
+          const val = input.value.trim();
+          let ok = val.length > 0;
+          if (f.plz) ok = /^[0-9]{5}$/.test(val);
+          if (!ok) { fwrap.classList.add('has-error'); valid = false; }
+          else { fwrap.classList.remove('has-error'); state.answers[f.id] = val; }
+        });
+        if (!valid) {
+          const firstErr = wrap.querySelector('.has-error');
+          if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        fireQuizStartedOnce('address');
+        push('quiz_step_completed', { step_id: 'address', step_index: state.stepIndex });
+        state.stepIndex = nextStepIndex();
+        render();
+      }
+    }, ['Weiter ', create('span', { class: 'arrow', 'aria-hidden': 'true' }, '→')]);
+
+    const actions = create('div', { class: 'quiz-actions' });
+    actions.appendChild(create('button', { type: 'button', class: 'btn-ghost', onclick: back }, '← Zurück'));
+    actions.appendChild(nextBtn);
     wrap.appendChild(actions);
     return wrap;
   }
@@ -250,9 +419,9 @@
     const form = create('form', { class: 'quiz-form', novalidate: 'true' });
 
     const fields = [
-      { id: 'name',      label: 'Vor- und Nachname', type: 'text', autocomplete: 'name', pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}.+", placeholder: 'z. B. Maria Musterfrau', errorMsg: 'Bitte geben Sie Vor- und Nachname ein.' },
-      { id: 'email',     label: 'E-Mail-Adresse', type: 'email', autocomplete: 'email', placeholder: 'name@beispiel.de', errorMsg: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' },
-      { id: 'phone',     label: 'Telefon (für Ihre persönliche Werteinschätzung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
+      { id: 'name',  label: 'Vor- und Nachname', type: 'text',  autocomplete: 'name',        pattern: "[-A-Za-zÄÖÜäöüß' .]{2,}.+", placeholder: 'z. B. Maria Musterfrau', errorMsg: 'Bitte geben Sie Vor- und Nachname ein.' },
+      { id: 'email', label: 'E-Mail-Adresse',    type: 'email', autocomplete: 'email',       placeholder: 'name@beispiel.de',      errorMsg: 'Bitte geben Sie eine gültige E-Mail-Adresse ein.' },
+      { id: 'phone', label: 'Telefon (für Ihre persönliche Werteinschätzung)', type: 'tel', autocomplete: 'tel-national', placeholder: '171 1234567', tel: true, errorMsg: 'Bitte geben Sie eine gültige Telefonnummer ein.' }
     ];
 
     fields.forEach(f => {
@@ -301,7 +470,7 @@
     }));
     form.appendChild(consentWrap);
 
-    // Honeypot (Spam-Schutz, unsichtbar)
+    // Honeypot (Spam-Schutz)
     const honey = create('input', { type: 'text', name: 'website', tabindex: '-1', autocomplete: 'off' });
     honey.style.position = 'absolute';
     honey.style.left = '-10000px';
@@ -352,7 +521,10 @@
 
       submitBtn.disabled = true;
       submitBtn.innerHTML = 'Wird gesendet …';
-      submitLead().then(() => renderConfirm()).catch(err => {
+      submitLead().then(() => {
+        // Redirect auf Danke-Seite — Cal-Embed wird dort gerendert
+        window.location.href = CONFIG.thankYouPath + '?type=' + state.leadType;
+      }).catch(err => {
         submitBtn.disabled = false;
         submitBtn.innerHTML = 'Kostenlose Werteinschätzung anfordern <span class="arrow" aria-hidden="true">→</span>';
         alert('Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder rufen Sie uns telefonisch unter ' + CONFIG.contactPhoneDisplay + ' an.');
@@ -384,7 +556,6 @@
     fireQuizStartedOnce(stepId);
     push('quiz_step_completed', { step_id: stepId, value: value, step_index: state.stepIndex });
 
-    // Auswahl sichtbar bestätigen, dann mit kurzer Verzögerung weiterblättern
     if (btnEl && btnEl.parentElement) {
       btnEl.parentElement.querySelectorAll('.quiz-option').forEach(b => {
         b.classList.remove('is-selected');
@@ -392,12 +563,10 @@
       });
       btnEl.classList.add('is-selected', 'just-picked');
     }
-    if (state.stepIndex < QUIZ_STEPS.length - 1) {
-      setTimeout(() => { state.stepIndex++; render(); }, 300);
-    }
+    setTimeout(() => { state.stepIndex = nextStepIndex(); render(); }, 300);
   }
-  function next() { if (state.stepIndex < QUIZ_STEPS.length - 1) { state.stepIndex++; render(); } }
-  function back() { if (state.stepIndex > 0) { state.stepIndex--; render(); } }
+  function next() { state.stepIndex = nextStepIndex(); render(); }
+  function back() { state.stepIndex = prevStepIndex(); render(); }
 
   // ---- Routing -------------------------------------------
   function isPLZWithin50kmHerford(plz) {
@@ -406,17 +575,14 @@
     return PLZ_PREFIX_WHITELIST.indexOf(prefix) !== -1;
   }
 
+  // Nur PLZ-basiertes Routing:
+  // - innerhalb 50-km-Radius um Herford → HOT (Termin auf Danke-Seite)
+  // - außerhalb → COLD (kein Termin, persönliche Rückmeldung)
   function classifyLead(a) {
-    const validPLZ = isPLZWithin50kmHerford(a.plz);
-    const t = a.timeline;
-    const d = a.decider;
-
-    if (!validPLZ || d === 'andere') return 'cold';
-    if (d === 'erben' || t === '6to12') return 'warm';
-    return 'hot';
+    return isPLZWithin50kmHerford(a.plz) ? 'hot' : 'cold';
   }
 
-  // ---- Submit --------------------------------------------
+  // ---- Label-Lookup --------------------------------------
   function labelOf(stepId, value) {
     const step = QUIZ_STEPS.find(s => s.id === stepId);
     if (!step || !step.options) return value;
@@ -424,8 +590,7 @@
     return opt ? opt.label : value;
   }
 
-  // Bereitet User-Daten für Google Ads Enhanced Conversions auf.
-  // Google akzeptiert Klartext und hasht intern selbst (SHA-256).
+  // ---- Submit --------------------------------------------
   function splitName(full) {
     const parts = (full || '').toString().trim().split(/\s+/);
     if (parts.length <= 1) return { first: parts[0] || '', last: '' };
@@ -443,19 +608,19 @@
     }
     const n = splitName(a.name);
     return {
-      email:       clean(a.email),
+      email:        clean(a.email),
       phone_number: normalizePhone(a.phone),
       address: {
         first_name:  clean(n.first),
         last_name:   clean(n.last),
+        street:      clean((a.street || '') + ' ' + (a.house_no || '')).trim(),
         postal_code: clean(a.plz),
+        city:        clean(a.city),
         country:     'DE'
       }
     };
   }
 
-  // POST mit hartem Timeout. Wirft, wenn der Dienst nicht erreichbar ist,
-  // mit Fehler-Status antwortet oder die API success:false meldet.
   function postWithTimeout(url, payload, ms) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), ms);
@@ -485,172 +650,56 @@
     const n = splitName(fullName);
     const subject = 'Holzmann Lead [' + leadType + '] — ' + fullName + ' (PLZ ' + a.plz + ')';
 
-    // Lead-Daten (in beiden Versand-Wegen im Mail-Body lesbar)
+    const fullAddress = [a.street, a.house_no].filter(Boolean).join(' ') + ', ' + (a.plz || '') + ' ' + (a.city || '');
+
     const leadFields = {
       'Weiterleiten an': 'holzmann.immobilien.herford@gmail.com, info@kivonti.de',
-      'Lead-Typ': leadType,
-      'Name': fullName,
-      'Vorname': n.first,
-      'Nachname': n.last,
-      'E-Mail': a.email,
-      'Telefon': a.phone,
-      'Objekt-Typ': labelOf('property_type', a.property_type),
-      'PLZ Objekt': a.plz,
-      'Verkaufszeitraum': labelOf('timeline', a.timeline),
-      'Entscheider': labelOf('decider', a.decider),
-      'Quelle': 'verkauf.holzmann-immobilien.de',
-      'Zeitstempel': new Date().toISOString()
+      'Lead-Typ':        leadType,
+      'Name':            fullName,
+      'Vorname':         n.first,
+      'Nachname':        n.last,
+      'E-Mail':          a.email,
+      'Telefon':         a.phone,
+      'Objekt-Typ':      labelOf('property_type', a.property_type),
+      'Grundstücksfläche (m²)': a.plot_area || '',
+      'Wohnfläche (m²)': a.living_area || '–',
+      'Baujahr':         a.build_year || '–',
+      'Zimmer':          a.rooms ? labelOf('rooms', a.rooms) : '–',
+      'Vermietet':       a.rented ? labelOf('rented', a.rented) : '–',
+      'Grund der Bewertung': labelOf('reason', a.reason),
+      'Adresse Objekt':  fullAddress.trim(),
+      'Straße':          a.street || '',
+      'Hausnummer':      a.house_no || '',
+      'PLZ Objekt':      a.plz || '',
+      'Ort':             a.city || '',
+      'Quelle':          'verkauf.holzmann-immobilien.de',
+      'Zeitstempel':     new Date().toISOString()
     };
 
-    // Versand über Web3Forms an den Key-Inhaber info@wohlstandsmarketing.de.
-    // Von dort verteilt eine Gmail-Filterregel die Leads automatisch an
-    // Holzmann und Kivonti weiter (Filter: Betreff enthält "Holzmann Lead").
     const web3formsPayload = Object.assign({
       access_key: CONFIG.web3formsKey,
-      subject: subject,
-      from_name: 'Holzmann Landingpage',
-      replyto: a.email
+      subject:    subject,
+      from_name:  'Holzmann Landingpage',
+      replyto:    a.email
     }, leadFields);
 
-    // Enhanced Conversions: bereinigte User-Daten für Google Ads bereitstellen
+    // Enhanced Conversions: User-Daten für Google Ads bereitstellen
     const userData = buildEnhancedConversionData(a);
     try { localStorage.setItem('holzmann-ec-userdata', JSON.stringify({ data: userData, ts: Date.now() })); } catch(e) {}
 
     push('quiz_completed_' + state.leadType, {
       lead_type: state.leadType,
-      value: state.leadType === 'hot' ? 200 : state.leadType === 'warm' ? 50 : 0,
+      value: state.leadType === 'hot' ? 200 : 0,
       currency: 'EUR',
       enhanced_conversion_data: userData
     });
 
-    // Versand über Web3Forms. Schlägt der erste Versuch fehl (kurzer
-    // Aussetzer/Timeout), wird genau einmal automatisch wiederholt.
     return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs)
       .catch(err => {
         // eslint-disable-next-line no-console
         console.warn('Web3Forms-Versand fehlgeschlagen — starte einen Wiederholungsversuch.', err);
         return postWithTimeout(CONFIG.web3formsEndpoint, web3formsPayload, CONFIG.submitTimeoutMs);
       });
-  }
-
-  // ---- Confirmation --------------------------------------
-  function renderConfirm() {
-    root.setAttribute('data-quiz-state', 'confirm-' + state.leadType);
-    const t = state.leadType;
-    let icon, headline, message, extra;
-
-    if (t === 'hot') {
-      icon = '✓';
-      headline = 'Geschafft — Ihre Werteinschätzung ist in Arbeit.';
-      message = 'Ihre Angaben sind bei uns. Am schnellsten geht es persönlich: Wählen Sie unten einen 15-Minuten-Telefontermin — Viktor Holzmann ruft Sie pünktlich an und bespricht Ihre Werteinschätzung direkt mit Ihnen.';
-      extra = create('div', { class: 'cal-embed', id: 'cal-embed-holzmann' });
-      // Cal.com Embed wird nach DOM-Insert initialisiert (siehe initCalEmbed unten)
-    } else if (t === 'warm') {
-      icon = '✓';
-      headline = 'Geschafft — Ihre Werteinschätzung wird vorbereitet.';
-      message = 'Wir haben Ihre Angaben erhalten und bereiten Ihre persönliche Werteinschätzung vor. Möchten Sie sie direkt besprechen? Wählen Sie unten einen passenden 15-Minuten-Telefontermin — andernfalls melden wir uns binnen 24 Stunden bei Ihnen.';
-      extra = create('div', { class: 'cal-embed', id: 'cal-embed-holzmann' });
-      // Cal.com Embed wird nach DOM-Insert initialisiert (siehe initCalEmbed unten)
-    } else {
-      icon = '✓';
-      headline = 'Vielen Dank — wir haben Ihre Anfrage erhalten.';
-      message = 'Ihre Immobilie liegt außerhalb unseres Kerngebiets (50 km um Herford) oder die Entscheiderfrage ist noch offen. Wir prüfen Ihre Situation und melden uns persönlich bei Ihnen — telefonisch oder per E-Mail.';
-      extra = create('p', null, ['Bei dringenden Fragen erreichen Sie uns unter ',
-        create('a', { href: 'tel:' + CONFIG.contactPhone }, CONFIG.contactPhoneDisplay), '.']);
-    }
-
-    root.innerHTML = '';
-    const wrap = create('div', { class: 'quiz-confirm' }, [
-      create('div', { class: 'confirm-icon', 'aria-hidden': 'true' }, icon),
-      create('h3', null, headline),
-      create('p', null, message),
-      extra
-    ]);
-    root.appendChild(wrap);
-
-    // Cal.com Embed initialisieren (Hot- und Warm-Pfad)
-    if (t === 'hot' || t === 'warm') initCalEmbed();
-
-    // Scroll zum Quiz, damit Buchung sichtbar ist
-    setTimeout(() => {
-      const top = root.getBoundingClientRect().top + window.scrollY - 40;
-      window.scrollTo({ top: top, behavior: 'smooth' });
-    }, 80);
-  }
-
-  // ---- Cal.com Inline-Embed -------------------------------
-  function initCalEmbed() {
-    // Lead-Daten als Prefill an Cal.com übergeben
-    const a = state.answers;
-    const prefill = {
-      name: (a.name || '').trim(),
-      email: a.email || '',
-      smsReminderNumber: a.phone || '',
-      notes:
-        'Objekt: ' + (labelOf('property_type', a.property_type) || '') +
-        ' · PLZ ' + (a.plz || '') +
-        ' · Verkauf: ' + (labelOf('timeline', a.timeline) || '') +
-        ' · Entscheider: ' + (labelOf('decider', a.decider) || '')
-    };
-
-    // Cal.com EU Inline-Embed-Loader (offizieller Snippet, einmalig laden)
-    (function (C, A, L) {
-      let p = function (a, ar) { a.q.push(ar); };
-      let d = C.document;
-      C.Cal = C.Cal || function () {
-        let cal = C.Cal; let ar = arguments;
-        if (!cal.loaded) {
-          cal.ns = {}; cal.q = cal.q || [];
-          d.head.appendChild(d.createElement('script')).src = A;
-          cal.loaded = true;
-        }
-        if (ar[0] === L) {
-          const api = function () { p(api, arguments); };
-          const namespace = ar[1]; api.q = api.q || [];
-          if (typeof namespace === 'string') {
-            cal.ns[namespace] = cal.ns[namespace] || api;
-            p(cal.ns[namespace], ar);
-            p(cal, ['initNamespace', namespace]);
-          } else { p(cal, ar); }
-          return;
-        }
-        p(cal, ar);
-      };
-    })(window, 'https://app.cal.com/embed/embed.js', 'init');
-
-    // Prefill direkt im calLink als URL-Parameter — überschreibt zuverlässig
-    // gespeicherte Cal.com-Cookies/localStorage des Browsers.
-    const params = new URLSearchParams();
-    if (prefill.name) params.set('name', prefill.name);
-    if (prefill.email) params.set('email', prefill.email);
-    if (prefill.smsReminderNumber) params.set('smsReminderNumber', prefill.smsReminderNumber);
-    if (prefill.notes) params.set('notes', prefill.notes);
-    const calLinkWithPrefill = CONFIG.calLink + (params.toString() ? '?' + params.toString() : '');
-
-    Cal('init', '15min', { origin: 'https://app.cal.com' });
-    Cal.ns['15min']('inline', {
-      elementOrSelector: '#cal-embed-holzmann',
-      config: Object.assign(
-        { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
-        prefill.name ? { name: prefill.name } : {},
-        prefill.email ? { email: prefill.email } : {},
-        prefill.smsReminderNumber ? { smsReminderNumber: prefill.smsReminderNumber } : {},
-        prefill.notes ? { notes: prefill.notes } : {}
-      ),
-      calLink: calLinkWithPrefill
-    });
-    Cal.ns['15min']('ui', { hideEventTypeDetails: false, layout: 'month_view' });
-    Cal.ns['15min']('prefill', prefill);
-
-    // Nach erfolgreicher Buchung: GTM-Event + Redirect auf Danke-Seite
-    Cal.ns['15min']('on', {
-      action: 'bookingSuccessful',
-      callback: function () {
-        window.dataLayer = window.dataLayer || [];
-        window.dataLayer.push({ event: 'cal_booking_successful', lead_type: state.leadType });
-        window.location.href = '/danke-seite.html';
-      }
-    });
   }
 
   // ---- Tracking ------------------------------------------
@@ -660,9 +709,6 @@
   }
 
   // ---- Init ----------------------------------------------
-  // CTA-Buttons als Scroll-Trigger zum Quiz (Mikro-Conversion).
-  // WICHTIG: feuert NICHT mehr `quiz_started` — das passiert jetzt erst
-  // beim tatsächlichen Beantworten der ersten Frage (fireQuizStartedOnce).
   document.querySelectorAll('[data-cta]').forEach(btn => {
     btn.addEventListener('click', () => {
       push('cta_click_to_quiz', { source: btn.getAttribute('data-cta') });

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vielen Dank — Termin bestätigt | Holzmann Immobilien</title>
-  <meta name="description" content="Ihr 15-Minuten-Erstgespräch mit Holzmann Immobilien ist gebucht. Sie erhalten eine Bestätigung per E-Mail.">
+  <title>Vielen Dank — Ihre Werteinschätzung ist unterwegs | Holzmann Immobilien</title>
+  <meta name="description" content="Wir haben Ihre Anfrage erhalten. Sie bekommen in Kürze Ihre persönliche Werteinschätzung per E-Mail — und können direkt einen 15-Minuten-Telefontermin buchen.">
   <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://verkauf.holzmann-immobilien.de/danke-seite.html">
 
@@ -64,7 +64,7 @@
     gtag('config', 'AW-17651262615');
   </script>
 
-  <!-- Conversion-Event (Buchung bestätigt) + Enhanced Conversions User-Data -->
+  <!-- Conversion-Event (Lead empfangen) + Enhanced Conversions User-Data -->
   <script>
     (function(){
       window.dataLayer = window.dataLayer || [];
@@ -80,10 +80,16 @@
         }
       } catch(e) {}
 
+      // Lead-Typ aus URL-Parameter (?type=hot|cold)
+      var params = new URLSearchParams(window.location.search);
+      var leadType = (params.get('type') || '').toLowerCase();
+      if (['hot','cold'].indexOf(leadType) === -1) leadType = 'unknown';
+
       var event = {
-        event: 'booking_confirmed',
+        event: 'lead_received',
         page_type: 'thankyou',
-        lead_source: 'landingpage_google_ads'
+        lead_source: 'landingpage_google_ads',
+        lead_type: leadType
       };
       if (userData) event.enhanced_conversion_data = userData;
       window.dataLayer.push(event);
@@ -352,6 +358,95 @@
     }
     .btn-back .arrow { font-size: 1.05em; }
 
+    /* E-Mail-Hinweis-Banner */
+    .email-notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--gold-soft);
+      border: 1px solid rgba(184, 137, 95, 0.30);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 0 auto 32px;
+      text-align: left;
+      max-width: 620px;
+    }
+    .email-notice-icon {
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gold);
+      color: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .email-notice-icon svg { width: 18px; height: 18px; stroke: var(--white); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .email-notice-text {
+      font-size: 0.95rem;
+      color: var(--ink-soft);
+      line-height: 1.55;
+    }
+    .email-notice-text strong { color: var(--ink); font-weight: 600; }
+
+    /* Cal.com Inline-Embed */
+    .booking-section {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 28px 24px 24px;
+      margin: 0 auto 32px;
+      box-shadow: 0 8px 30px rgba(7, 7, 26, 0.06);
+    }
+    .booking-section h2 {
+      font-family: var(--h-font);
+      font-weight: 400;
+      font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+      color: var(--ink);
+      margin-bottom: 10px;
+      letter-spacing: -0.005em;
+      text-align: center;
+    }
+    .booking-section h2 em { color: var(--gold); font-style: italic; font-weight: 300; }
+    .booking-section .booking-sub {
+      font-size: 0.97rem;
+      color: var(--ink-soft);
+      max-width: 520px;
+      margin: 0 auto 22px;
+      text-align: center;
+      line-height: 1.6;
+    }
+    #cal-embed-holzmann { min-height: 640px; width: 100%; }
+
+    /* iPad-Anpassung: etwas mehr Höhe für Monatsansicht */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      .booking-section { padding: 32px 28px; }
+      #cal-embed-holzmann { min-height: 720px; }
+    }
+
+    /* Mobile (≤640): Booking-Section kompakter, Cal-Embed nutzt Slot-View */
+    @media (max-width: 640px) {
+      .main { padding: 36px 16px 56px; }
+      .booking-section { padding: 22px 16px 18px; border-radius: 14px; }
+      .booking-section h2 { font-size: 1.25rem; }
+      .booking-section .booking-sub { font-size: 0.92rem; margin-bottom: 16px; }
+      #cal-embed-holzmann { min-height: 560px; }
+      .email-notice { padding: 14px 16px; gap: 12px; border-radius: 12px; }
+      .email-notice-icon { width: 32px; height: 32px; }
+      .email-notice-icon svg { width: 16px; height: 16px; }
+      .email-notice-text { font-size: 0.9rem; }
+      .steps { padding: 22px 18px 18px; border-radius: 14px; }
+      .contact-box { padding: 20px 18px; border-radius: 14px; }
+      .lead { margin-bottom: 28px; }
+    }
+    /* Sehr schmale Phones (≤380): Headlines + Buttons enger */
+    @media (max-width: 380px) {
+      h1 { font-size: 1.85rem; }
+      .booking-section h2 { font-size: 1.15rem; }
+      .btn-back { padding: 14px 26px; font-size: 0.92rem; }
+    }
+
     /* Footer */
     .footer {
       padding: 22px 24px;
@@ -389,29 +484,28 @@
         <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
       </div>
 
-      <h1 class="fade-1">Termin <em>bestätigt</em>.</h1>
+      <h1 class="fade-1">Vielen Dank — Ihre <em>Werteinschätzung</em> ist unterwegs.</h1>
 
-      <p class="lead fade-2">
-        Vielen Dank — Ihr 15-Minuten-Erstgespräch mit Viktor Holzmann ist verbindlich gebucht. Sie erhalten in Kürze eine Bestätigung per E-Mail mit allen Details und einer Kalender-Einladung.
+      <p class="lead fade-2" id="lead-message">
+        Wir haben Ihre Anfrage erhalten. In den nächsten Minuten erhalten Sie eine E-Mail von uns — mit den nächsten Schritten zu Ihrer persönlichen Immobilienbewertung.
       </p>
 
-      <div class="steps fade-3">
-        <p class="steps-title">So geht es weiter</p>
-        <ul class="steps-list">
-          <li>
-            <span class="step-num">1</span>
-            <span>Sie erhalten eine E-Mail mit der Termin-Bestätigung und einem Kalender-Eintrag.</span>
-          </li>
-          <li>
-            <span class="step-num">2</span>
-            <span>Wir bereiten uns auf Ihre Immobilie vor — auf Basis Ihrer Angaben aus dem Fragebogen.</span>
-          </li>
-          <li>
-            <span class="step-num">3</span>
-            <span>Zur vereinbarten Zeit ruft Viktor Holzmann persönlich auf der angegebenen Nummer an.</span>
-          </li>
-        </ul>
+      <!-- E-Mail-Hinweis-Banner -->
+      <div class="email-notice fade-2">
+        <span class="email-notice-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 6l8 7 8-7"/></svg>
+        </span>
+        <span class="email-notice-text">
+          <strong>Bitte prüfen Sie in den nächsten Minuten Ihr E-Mail-Postfach</strong> — Ihre Immobilienbewertung kommt dort an. Schauen Sie zur Sicherheit auch in den Spam-Ordner.
+        </span>
       </div>
+
+      <!-- Termin-Buchung (Cal.com) — wird bei HOT/WARM-Leads angezeigt -->
+      <section class="booking-section fade-3" id="booking-section" style="display:none;">
+        <h2>Direkt einen <em>15-Minuten-Termin</em> sichern</h2>
+        <p class="booking-sub">Schneller als E-Mail: Wählen Sie unten einen passenden Termin — Viktor Holzmann ruft Sie pünktlich an und bespricht Ihre Werteinschätzung direkt mit Ihnen.</p>
+        <div id="cal-embed-holzmann"></div>
+      </section>
 
       <div class="contact-box fade-3">
         <p class="contact-eyebrow">Direkter Draht zu Holzmann Immobilien</p>
@@ -456,6 +550,87 @@
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+
+  <!-- Lead-Typ-abhängige Anzeige + Cal.com-Embed -->
+  <script>
+    (function () {
+      var params  = new URLSearchParams(window.location.search);
+      var type    = (params.get('type') || '').toLowerCase();
+      var isHot   = type === 'hot';
+      var isCold  = type === 'cold';
+
+      // Lead-Nachricht je nach Typ feinjustieren
+      var msg = document.getElementById('lead-message');
+      if (isCold && msg) {
+        msg.innerHTML = 'Wir haben Ihre Anfrage erhalten. Ihre Immobilie liegt außerhalb unseres Kerngebiets (50 km um Herford) — wir prüfen Ihre Situation und melden uns persönlich bei Ihnen.';
+      }
+
+      // Cal.com-Embed nur für HOT-Leads einblenden (PLZ im Kerngebiet)
+      if (!isHot) return;
+
+      var section = document.getElementById('booking-section');
+      if (section) section.style.display = '';
+
+      // Cal.com Inline-Embed-Loader (offizielles Snippet)
+      (function (C, A, L) {
+        var p = function (a, ar) { a.q.push(ar); };
+        var d = C.document;
+        C.Cal = C.Cal || function () {
+          var cal = C.Cal; var ar = arguments;
+          if (!cal.loaded) {
+            cal.ns = {}; cal.q = cal.q || [];
+            d.head.appendChild(d.createElement('script')).src = A;
+            cal.loaded = true;
+          }
+          if (ar[0] === L) {
+            var api = function () { p(api, arguments); };
+            var namespace = ar[1]; api.q = api.q || [];
+            if (typeof namespace === 'string') {
+              cal.ns[namespace] = cal.ns[namespace] || api;
+              p(cal.ns[namespace], ar);
+              p(cal, ['initNamespace', namespace]);
+            } else { p(cal, ar); }
+            return;
+          }
+          p(cal, ar);
+        };
+      })(window, 'https://app.cal.com/embed/embed.js', 'init');
+
+      Cal('init', '15min', { origin: 'https://app.cal.com' });
+      Cal.ns['15min']('inline', {
+        elementOrSelector: '#cal-embed-holzmann',
+        config: { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
+        calLink: 'holzmann-immobilien/15min'
+      });
+      Cal.ns['15min']('ui', { hideEventTypeDetails: false, layout: 'month_view' });
+
+      // Nach erfolgreicher Buchung: GTM-Event feuern (für Conversion-Tracking)
+      Cal.ns['15min']('on', {
+        action: 'bookingSuccessful',
+        callback: function () {
+          var userData = null;
+          try {
+            var raw = localStorage.getItem('holzmann-ec-userdata');
+            if (raw) {
+              var parsed = JSON.parse(raw);
+              if (parsed && parsed.data && parsed.ts && (Date.now() - parsed.ts) < 7200000) {
+                userData = parsed.data;
+              }
+            }
+          } catch(e) {}
+          window.dataLayer = window.dataLayer || [];
+          var ev = {
+            event: 'booking_confirmed',
+            page_type: 'thankyou',
+            lead_source: 'landingpage_google_ads',
+            lead_type: type
+          };
+          if (userData) ev.enhanced_conversion_data = userData;
+          window.dataLayer.push(ev);
+        }
+      });
+    })();
   </script>
 
 </body>

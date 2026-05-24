@@ -801,6 +801,90 @@ html {
 }
 .tel-wrap input[type="tel"]:focus { outline: none; }
 
+/* Number-Input mit Einheit */
+.quiz-field-number .number-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+.quiz-field-number .number-wrap:hover { background: var(--white); border-color: var(--line-strong); }
+.quiz-field-number .number-wrap:focus-within { border-color: var(--gold); background: var(--white); box-shadow: 0 0 0 3px var(--gold-soft); }
+.quiz-field-number .number-wrap input {
+  flex: 1 1 auto;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 14px 16px;
+  font-size: 16px;
+  color: var(--ink);
+  outline: none;
+  box-shadow: none !important;
+}
+.quiz-field-number .number-wrap .number-unit {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  background: rgba(7, 7, 26, 0.04);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  border-left: 1px solid var(--line);
+}
+.quiz-field-number.has-error .number-wrap { border-color: var(--error); background: rgba(179,58,58,0.04); }
+
+/* Dropdown / Select */
+.quiz-field-select .quiz-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid var(--line);
+  background: var(--surface) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right 14px center;
+  background-size: 18px;
+  padding: 14px 44px 14px 16px;
+  font-size: 16px;
+  border-radius: 12px;
+  color: var(--ink);
+  font-family: inherit;
+  transition: background-color .2s, border-color .2s, box-shadow .2s;
+  cursor: pointer;
+}
+.quiz-field-select .quiz-select:hover { background-color: var(--white); border-color: var(--line-strong); }
+.quiz-field-select .quiz-select:focus { outline: none; border-color: var(--gold); background-color: var(--white); box-shadow: 0 0 0 3px var(--gold-soft); }
+.quiz-field-select.has-error .quiz-select { border-color: var(--error); background-color: rgba(179,58,58,0.04); }
+/* Mobile: Padding reduzieren, Einheit-Suffix kompakter */
+@media (max-width: 380px) {
+  .quiz-field-number .number-wrap input { padding: 13px 14px; }
+  .quiz-field-number .number-wrap .number-unit { padding: 0 12px; font-size: 13px; }
+  .quiz-field-select .quiz-select { padding: 13px 40px 13px 14px; }
+}
+
+/* Adress-Grid */
+.address-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "street   street"
+    "houseno  plz"
+    "city     city";
+  gap: 14px 12px;
+  margin-bottom: 14px;
+}
+.address-grid .addr-street  { grid-area: street; }
+.address-grid .addr-houseno { grid-area: houseno; }
+.address-grid .addr-plz     { grid-area: plz; }
+.address-grid .addr-city    { grid-area: city; }
+.address-grid .quiz-field { margin-bottom: 0; }
+/* Auf schmaleren Smartphones (Portrait) Hausnr+PLZ trennen, um Quetschen zu vermeiden */
+@media (max-width: 600px) {
+  .address-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas: "street" "houseno" "plz" "city";
+  }
+}
+
 .quiz-checkbox {
   display: flex;
   align-items: flex-start;
