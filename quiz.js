@@ -41,7 +41,7 @@
 
   // ---- Quiz-Konfiguration --------------------------------
   // skipIf: Function(answers) → bool. true = Step überspringen.
-  const isLand = a => a.property_type === 'grundstueck' || a.property_type === 'baugrundstueck';
+  const isLand = a => a.property_type === 'baugrundstueck';
 
   const QUIZ_STEPS = [
     {
@@ -50,11 +50,10 @@
       help: 'Wählen Sie die Art Ihrer Immobilie.',
       type: 'single',
       options: [
-        { value: 'familienhaus',   label: 'Familienhaus',     icon: ICON.familienhaus },
-        { value: 'mfh',            label: 'Mehrfamilienhaus', icon: ICON.mfh },
-        { value: 'wohnung',        label: 'Eigentumswohnung', icon: ICON.wohnung },
-        { value: 'grundstueck',    label: 'Grundstück',       icon: ICON.grundstueck },
-        { value: 'baugrundstueck', label: 'Baugrundstück',    icon: ICON.baugrundstueck }
+        { value: 'familienhaus',   label: 'Ein-/Zweifamilienhaus', icon: ICON.familienhaus },
+        { value: 'mfh',            label: 'Mehrfamilienhaus',      icon: ICON.mfh },
+        { value: 'wohnung',        label: 'Eigentumswohnung',      icon: ICON.wohnung },
+        { value: 'baugrundstueck', label: 'Baugrundstück',         icon: ICON.baugrundstueck }
       ]
     },
     {
@@ -97,8 +96,9 @@
       help: 'Bei vermieteten Objekten gelten besondere Fristen — relevant für die Einschätzung.',
       type: 'dropdown',
       options: [
-        { value: 'nein', label: 'Nein' },
-        { value: 'ja',   label: 'Ja' }
+        { value: 'selbst',    label: 'Ich lebe dort' },
+        { value: 'vermietet', label: 'Vermietet' },
+        { value: 'leerstand', label: 'Leerstand / Teilvermietet' }
       ],
       skipIf: isLand
     },
@@ -340,8 +340,7 @@
 
     const a = state.answers;
     const fields = [
-      { id: 'street',     label: 'Straße',     type: 'text', autocomplete: 'address-line1',  placeholder: 'z. B. Bahnhofstraße',  gridClass: 'addr-street',  errorMsg: 'Bitte geben Sie die Straße ein.' },
-      { id: 'house_no',   label: 'Hausnummer', type: 'text', autocomplete: 'address-line2',  placeholder: 'z. B. 12a',            gridClass: 'addr-houseno', errorMsg: 'Bitte geben Sie die Hausnummer ein.' },
+      { id: 'street_and_no', label: 'Straße und Hausnummer', type: 'text', autocomplete: 'street-address', placeholder: 'z. B. Bahnhofstraße 12a', gridClass: 'addr-street', errorMsg: 'Bitte geben Sie Straße und Hausnummer ein.' },
       { id: 'plz',        label: 'PLZ',        type: 'tel',  autocomplete: 'postal-code',    placeholder: 'z. B. 32049',          gridClass: 'addr-plz',     errorMsg: 'Bitte geben Sie eine gültige 5-stellige Postleitzahl ein.', plz: true },
       { id: 'city',       label: 'Ort',        type: 'text', autocomplete: 'address-level2', placeholder: 'z. B. Herford',        gridClass: 'addr-city',    errorMsg: 'Bitte geben Sie den Ort ein.' }
     ];
@@ -613,7 +612,7 @@
       address: {
         first_name:  clean(n.first),
         last_name:   clean(n.last),
-        street:      clean((a.street || '') + ' ' + (a.house_no || '')).trim(),
+        street:      clean(a.street_and_no || '').trim(),
         postal_code: clean(a.plz),
         city:        clean(a.city),
         country:     'DE'
@@ -650,7 +649,7 @@
     const n = splitName(fullName);
     const subject = 'Holzmann Lead [' + leadType + '] — ' + fullName + ' (PLZ ' + a.plz + ')';
 
-    const fullAddress = [a.street, a.house_no].filter(Boolean).join(' ') + ', ' + (a.plz || '') + ' ' + (a.city || '');
+    const fullAddress = (a.street_and_no || '') + ', ' + (a.plz || '') + ' ' + (a.city || '');
 
     const leadFields = {
       'Weiterleiten an': 'holzmann.immobilien.herford@gmail.com, info@kivonti.de',
@@ -668,8 +667,7 @@
       'Vermietet':       a.rented ? labelOf('rented', a.rented) : '–',
       'Grund der Bewertung': labelOf('reason', a.reason),
       'Adresse Objekt':  fullAddress.trim(),
-      'Straße':          a.street || '',
-      'Hausnummer':      a.house_no || '',
+      'Straße und Hausnummer': a.street_and_no || '',
       'PLZ Objekt':      a.plz || '',
       'Ort':             a.city || '',
       'Quelle':          'verkauf.holzmann-immobilien.de',

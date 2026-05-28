@@ -866,22 +866,19 @@ html {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-areas:
-    "street   street"
-    "houseno  plz"
-    "city     city";
+    "street  street"
+    "plz     city";
   gap: 14px 12px;
   margin-bottom: 14px;
 }
 .address-grid .addr-street  { grid-area: street; }
-.address-grid .addr-houseno { grid-area: houseno; }
 .address-grid .addr-plz     { grid-area: plz; }
 .address-grid .addr-city    { grid-area: city; }
 .address-grid .quiz-field { margin-bottom: 0; }
-/* Auf schmaleren Smartphones (Portrait) Hausnr+PLZ trennen, um Quetschen zu vermeiden */
 @media (max-width: 600px) {
   .address-grid {
     grid-template-columns: 1fr;
-    grid-template-areas: "street" "houseno" "plz" "city";
+    grid-template-areas: "street" "plz" "city";
   }
 }
 
